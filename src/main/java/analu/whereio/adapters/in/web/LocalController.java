@@ -40,10 +40,10 @@ public class LocalController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping("/buscar")
+    @GetMapping("/buscar-local")
     ResponseEntity<LocalBuscarDtoResponse> buscarLocal(@Valid @RequestBody LocalBuscarDtoRequest localBuscarDtoRequest) {
 
-        LocalBuscarDtoResponse localBuscarDtoResponse = mapper.toBuscarResponse(buscarLocalUsecase.execute(localBuscarDtoRequest.getText()));
+        LocalBuscarDtoResponse localBuscarDtoResponse = mapper.toBuscarResponse(buscarLocalUsecase.execute(localBuscarDtoRequest.getInputText(), localBuscarDtoRequest.getSessionToken()));
         return ResponseEntity.status(HttpStatus.OK).body(localBuscarDtoResponse);
     }
 

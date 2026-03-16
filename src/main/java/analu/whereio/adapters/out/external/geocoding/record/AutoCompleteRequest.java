@@ -4,5 +4,6 @@ import java.util.List;
 
 public record AutoCompleteRequest(
     String input,
-    List<String> includedRegionCodes
+    List<String> includedRegionCodes,
+    String sessionToken
 ) {}
