@@ -1,7 +1,9 @@
 package analu.whereio.adapters.in.web;
 
 import analu.whereio.adapters.in.web.converter.LocalConverter;
+import analu.whereio.adapters.in.web.dto.request.LocalBuscarDtoRequest;
 import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
 import analu.whereio.application.ports.in.local.*;
 import jakarta.validation.Valid;
@@ -38,15 +40,11 @@ public class LocalController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping("/buscar/{input}")
-    ResponseEntity<List<LocalDtoResponse>> buscarLocal(@PathVariable String input) {
-        List<LocalDtoResponse> listaLocalDtoResponse = buscarLocalUsecase
-                .execute(input)
-                .stream()
-                .map(mapper::toResponse)
-                .toList();
+    @GetMapping("/buscar")
+    ResponseEntity<LocalBuscarDtoResponse> buscarLocal(@Valid @RequestBody LocalBuscarDtoRequest localBuscarDtoRequest) {
 
-        return ResponseEntity.status(HttpStatus.OK).body(listaLocalDtoResponse);
+        LocalBuscarDtoResponse localBuscarDtoResponse = mapper.toBuscarResponse(buscarLocalUsecase.execute(localBuscarDtoRequest.getText()));
+        return ResponseEntity.status(HttpStatus.OK).body(localBuscarDtoResponse);
     }
 
     @GetMapping("/all")

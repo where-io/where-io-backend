@@ -1,11 +1,9 @@
 package analu.whereio.application.ports.in.local;
 
-import analu.whereio.application.model.Local;
-
-import java.util.List;
+import analu.whereio.adapters.out.external.geocoding.record.AutoCompleteResponse;
 
 public interface BuscarLocalUsecase {
 
-    List<Local> execute(String input);
+    AutoCompleteResponse execute(String input);
 
 }
