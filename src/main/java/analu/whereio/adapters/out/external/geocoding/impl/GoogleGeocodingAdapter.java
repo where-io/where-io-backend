@@ -84,17 +84,19 @@ public class GoogleGeocodingAdapter implements LatitudeLongitudeInterfacePort{
     }
 
     @Override
-    public AutoCompleteResponse autocomplete(String text) throws IOException, InterruptedException {
+    public AutoCompleteResponse autocomplete(String inputText, String sessionToken) throws IOException, InterruptedException {
 
 //        Dotenv dotenv = Dotenv.load();
 //        String apikey = System.getenv("GOOGLE_API_KEY");
+
         AutoCompleteRequest requestBody = new AutoCompleteRequest(
-                text,
-                List.of("br")
+                inputText,
+                List.of("br"),
+                sessionToken
         );
 
         return webClient
-            .post() // agora é POST
+            .post()
             .uri("/v1/places:autocomplete")
             .contentType(MediaType.APPLICATION_JSON)
             .header("X-Goog-Api-Key", apiKey)

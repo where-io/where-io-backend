@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 public class LocalBuscarDtoRequest {
 
-    @NotBlank private String text;
+    @NotBlank private String inputText;
+    @NotBlank private String sessionToken;
 
 }

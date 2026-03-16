@@ -16,10 +16,10 @@ public class BuscarLocalUsecaseImpl implements BuscarLocalUsecase {
     private final LatitudeLongitudeInterfacePort latitudeLongitudeInterfacePort;
 
     @Override
-    public AutoCompleteResponse execute(String input) {
+    public AutoCompleteResponse execute(String inputText, String sessionToken) {
 
         try{
-            return latitudeLongitudeInterfacePort.autocomplete(input);
+            return latitudeLongitudeInterfacePort.autocomplete(inputText, sessionToken);
 
         } catch (Exception e) {
             throw new BusinessException("Ocorreu um erro ao buscar o local", HttpStatus.INTERNAL_SERVER_ERROR);

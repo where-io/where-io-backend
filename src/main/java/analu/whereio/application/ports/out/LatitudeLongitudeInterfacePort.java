@@ -8,5 +8,5 @@ import java.io.IOException;
 public interface LatitudeLongitudeInterfacePort {
 
     LatitudeLongitudeRecord ConverterEnderecoParaCoordenadas(String endereco) throws IOException, InterruptedException;
-    AutoCompleteResponse autocomplete(String endereco) throws IOException, InterruptedException;
+    AutoCompleteResponse autocomplete(String inputText, String sessionToken) throws IOException, InterruptedException;
 }
