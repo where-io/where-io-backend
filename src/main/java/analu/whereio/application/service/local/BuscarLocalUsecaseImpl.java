@@ -19,7 +19,7 @@ public class BuscarLocalUsecaseImpl implements BuscarLocalUsecase {
     public AutoCompleteResponse execute(String inputText, String sessionToken) {
 
         try{
-            return latitudeLongitudeInterfacePort.autocomplete(inputText, sessionToken);
+            return null;
 
         } catch (Exception e) {
             throw new BusinessException("Ocorreu um erro ao buscar o local", HttpStatus.INTERNAL_SERVER_ERROR);

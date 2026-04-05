@@ -1,6 +1,7 @@
 package analu.whereio.application.service.local;
 
 import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
+import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.AtualizarLocalUsecase;
 import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
@@ -32,8 +33,13 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
 
         try{
             LatitudeLongitudeRecord record = latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
-            local.setLatitude(record.latitude());
-            local.setLongitude(record.longitude());
+
+            Coordenadas coordenadas = Coordenadas.builder().build();
+
+            coordenadas.setLatitude(record.latitude());
+            coordenadas.setLongitude(record.longitude());
+
+            local.setCoordenadas(coordenadas);
 
         } catch (RuntimeException | IOException | InterruptedException e) {
             throw new BusinessException("Local não foi encontrado", HttpStatus.NOT_FOUND);

@@ -1,6 +1,7 @@
 package analu.whereio.application.service.local;
 
-import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
+import analu.whereio.adapters.out.external.geocoding.record.ApiResponse;
+import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.CadastrarLocalUsecase;
 import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
@@ -28,13 +29,20 @@ public class CadastrarLocalUsecaseImpl implements CadastrarLocalUsecase {
             throw new BusinessException("Local já foi cadastrado", HttpStatus.UNPROCESSABLE_CONTENT);
         }
 
-        try{
-            LatitudeLongitudeRecord record = latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
-            local.setLatitude(record.latitude());
-            local.setLongitude(record.longitude());
+        if(isNull(local.getCoordenadas().getLongitude()) || isNull(local.getCoordenadas().getLatitude())){
+            try {
+                ApiResponse record = latitudeLongitudePort.buscarLocalizacao(local.getEndereco().toString());
 
-        } catch (RuntimeException | IOException | InterruptedException e) {
-            throw new BusinessException("Local não foi encontrado", HttpStatus.NOT_FOUND);
+                Coordenadas coordenadas = Coordenadas.builder().build();
+
+                coordenadas.setLatitude((String.valueOf(record.getResults().get(0).getNavigationPoints().get(0).getLocation().getLatitude())));
+                coordenadas.setLongitude((String.valueOf(record.getResults().get(0).getNavigationPoints().get(0).getLocation().getLongitude())));
+
+                local.setCoordenadas(coordenadas);
+
+            } catch (RuntimeException | IOException | InterruptedException e) {
+                throw new BusinessException("Ocorreu um erro ao cadastrar o local", HttpStatus.NOT_FOUND);
+            }
         }
 
         try{
