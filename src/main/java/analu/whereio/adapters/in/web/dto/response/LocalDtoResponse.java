@@ -1,5 +1,6 @@
 package analu.whereio.adapters.in.web.dto.response;
 
+import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Endereco;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
@@ -17,7 +18,6 @@ public class LocalDtoResponse {
     private String id;
     private String nome;
     private Endereco endereco;
-    private String latitude;
-    private String longitude;
+    private Coordenadas coordenadas;
     private List<VisitaDtoResponse> visitas = new ArrayList<>();
 }

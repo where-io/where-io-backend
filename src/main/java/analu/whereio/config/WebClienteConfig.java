@@ -9,8 +9,7 @@ public class WebClienteConfig {
 
     @Bean
     public WebClient webClient() {
-        return WebClient.builder()
-                .baseUrl("https://places.googleapis.com") // base fixa para todas as chamadas
+        return WebClient.builder()// base fixa para todas as chamadas
                 .build();
     }
 }

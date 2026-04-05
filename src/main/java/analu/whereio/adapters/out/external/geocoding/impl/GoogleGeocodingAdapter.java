@@ -1,13 +1,10 @@
 package analu.whereio.adapters.out.external.geocoding.impl;
 
-import analu.whereio.adapters.out.external.geocoding.record.AutoCompleteRequest;
-import analu.whereio.adapters.out.external.geocoding.record.AutoCompleteResponse;
+import analu.whereio.adapters.out.external.geocoding.record.ApiResponse;
 import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
 import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.boot.cfgxml.internal.ConfigLoader;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -17,7 +14,6 @@ import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Properties;
 
 @Component
@@ -28,7 +24,7 @@ public class GoogleGeocodingAdapter implements LatitudeLongitudeInterfacePort{
 
     private final WebClient webClient;
 
-    @Value("${google.map.api.key}")
+//    @Value("${google.map.api.key}")
     private String apiKey;
 
     public LatitudeLongitudeRecord ConverterEnderecoParaCoordenadas(String endereco) throws IOException, InterruptedException {
@@ -83,26 +79,28 @@ public class GoogleGeocodingAdapter implements LatitudeLongitudeInterfacePort{
         return new LatitudeLongitudeRecord(longitude, longitude);
     }
 
-    @Override
-    public AutoCompleteResponse autocomplete(String inputText, String sessionToken) throws IOException, InterruptedException {
+    public ApiResponse buscarLocalizacao(String endereco) throws IOException, InterruptedException {
+//        AutoCompleteRequest requestBody = new AutoCompleteRequest(
+//                inputText,
+//                List.of("br"),
+//                sessionToken
+//        );
 
-//        Dotenv dotenv = Dotenv.load();
-//        String apikey = System.getenv("GOOGLE_API_KEY");
 
-        AutoCompleteRequest requestBody = new AutoCompleteRequest(
-                inputText,
-                List.of("br"),
-                sessionToken
-        );
+        ApiResponse location =  webClient
+                .get()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .host("maps.googleapis.com")
+                        .path("/maps/api/geocode/json")
+                        .queryParam("key", apiKey)
+                        .queryParam("address", endereco)
+                        .build())
+//                .header("X-Goog-Api-Key")
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .block();
 
-        return webClient
-            .post()
-            .uri("/v1/places:autocomplete")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("X-Goog-Api-Key", apiKey)
-            .bodyValue(requestBody)
-            .retrieve()
-            .bodyToMono(AutoCompleteResponse.class)
-            .block();
+        return location;
     }
 }

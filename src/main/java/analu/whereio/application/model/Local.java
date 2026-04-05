@@ -13,7 +13,6 @@ public class Local {
     private String id;
     private String nome;
     private Endereco endereco;
-    private String latitude;
-    private String longitude;
+    private Coordenadas coordenadas;
     private List<Visita> visitas = new ArrayList<>();
 }
