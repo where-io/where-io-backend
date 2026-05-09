@@ -34,6 +34,9 @@ class CadastrarLocalUsecaseImplTest {
     @Mock
     private LatitudeLongitudeInterfacePort latitudeLongitudePort;
 
+    @Mock
+    private SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
+
     @InjectMocks
     private CadastrarLocalUsecaseImpl cadastrarLocalUsecaseImpl;
 
@@ -63,6 +66,8 @@ class CadastrarLocalUsecaseImplTest {
                 .latitude("-23.5505")
                 .longitude("-46.6333")
                 .build());
+
+        lenient().doNothing().when(sincronizarTagsDoLocalService).aplicar(any(Local.class));
     }
 
     private ApiResponse montarApiResponse(double latitude, double longitude) {
@@ -138,6 +143,7 @@ class CadastrarLocalUsecaseImplTest {
             );
             verify(latitudeLongitudePort, never()).buscarLocalizacao(anyString());
             verify(localRepositoryPort).cadastrarLocal(localComCoordenadas);
+            verify(sincronizarTagsDoLocalService).aplicar(localComCoordenadas);
         }
     }
 

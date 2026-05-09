@@ -9,6 +9,8 @@ import analu.whereio.application.ports.in.visita.CadastrarVisitaUsecase;
 import analu.whereio.application.ports.in.visita.RemoverVisitaUsecase;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,8 @@ import java.util.List;
 @RequestMapping("/api/visita")
 @RequiredArgsConstructor
 public class VisitaController {
+
+    private static final Logger log = LoggerFactory.getLogger(VisitaController.class);
 
     private final CadastrarVisitaUsecase cadastrarVisitaUsecase;
     private final AtualizarVisitaUsecase atualizarVisitaUsecase;
@@ -35,12 +39,15 @@ public class VisitaController {
 
     @PostMapping
     public ResponseEntity<String> adicionarVisita(@Valid @RequestBody VisitaDtoRequest visitaDtoRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cadastrarVisitaUsecase.execute(mapper.toDomain(visitaDtoRequest)));
+        String id = cadastrarVisitaUsecase.execute(mapper.toDomain(visitaDtoRequest));
+        log.info("Visita cadastrada com sucesso. id={}", id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(id);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> removerVisita(@PathVariable String id) {
         removerVisitaUsecase.execute(id);
+        log.info("Visita removida com sucesso. id={}", id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

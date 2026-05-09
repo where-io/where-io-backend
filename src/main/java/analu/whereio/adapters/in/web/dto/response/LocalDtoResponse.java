@@ -1,6 +1,7 @@
 package analu.whereio.adapters.in.web.dto.response;
 
 import analu.whereio.application.model.Coordenadas;
+import analu.whereio.application.model.Categoria;
 import analu.whereio.application.model.Endereco;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
@@ -12,12 +13,14 @@ import java.util.List;
 @Getter
 @Setter
 
-@JsonPropertyOrder({"id", "nome", "endereco", "latitude", "longitude", "visitas"})
+@JsonPropertyOrder({"id", "nome", "endereco", "latitude", "longitude", "idTags", "tags", "visitas"})
 public class LocalDtoResponse {
 
     private String id;
     private String nome;
     private Endereco endereco;
     private Coordenadas coordenadas;
+    private List<String> idTags = new ArrayList<>();
+    private List<Categoria> tags = new ArrayList<>();
     private List<VisitaDtoResponse> visitas = new ArrayList<>();
 }

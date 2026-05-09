@@ -8,6 +8,9 @@ import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -19,37 +22,56 @@ import static java.util.Objects.isNull;
 @RequiredArgsConstructor
 public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
 
+    private static final Logger log = LoggerFactory.getLogger(AtualizarLocalUsecaseImpl.class);
+
     private final LocalRepositoryPort localRepositoryPort;
     private final LatitudeLongitudeInterfacePort latitudeLongitudePort;
+    private final SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
 
     @Override
     public void execute(Local local, String id) {
 
-        if(isNull(localRepositoryPort.buscarPorIdLocal(id))){
-            throw new BusinessException("ID de local não existe", HttpStatus.NOT_FOUND);
-        }
+        MDC.put("operation", "atualizarLocal");
+        try {
+            log.info("Iniciando atualizacao de local. id={}", id);
 
-        local.setId(id);
+            if(isNull(localRepositoryPort.buscarPorIdLocal(id))){
+                BusinessException ex = new BusinessException("ID de local não existe", HttpStatus.NOT_FOUND);
+                log.warn("Local nao encontrado para atualizacao. id={}", id);
+                throw ex;
+            }
 
-        try{
-            LatitudeLongitudeRecord record = latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
+            local.setId(id);
 
-            Coordenadas coordenadas = Coordenadas.builder().build();
+            sincronizarTagsDoLocalService.aplicar(local);
 
-            coordenadas.setLatitude(record.latitude());
-            coordenadas.setLongitude(record.longitude());
+            try{
+                LatitudeLongitudeRecord record = latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
 
-            local.setCoordenadas(coordenadas);
+                Coordenadas coordenadas = Coordenadas.builder().build();
 
-        } catch (RuntimeException | IOException | InterruptedException e) {
-            throw new BusinessException("Local não foi encontrado", HttpStatus.NOT_FOUND);
-        }
+                coordenadas.setLatitude(record.latitude());
+                coordenadas.setLongitude(record.longitude());
 
-        try{
-            localRepositoryPort.atualizarLocal(local);
+                local.setCoordenadas(coordenadas);
 
-        }catch (Exception e){
-            throw new BusinessException("Ocorreu um erro ao atualizar o local", HttpStatus.INTERNAL_SERVER_ERROR);
+            } catch (RuntimeException | IOException | InterruptedException e) {
+                BusinessException bex = new BusinessException("Local não foi encontrado", HttpStatus.NOT_FOUND);
+                log.warn("Falha ao obter coordenadas na atualizacao do local. id={}", id);
+                throw bex;
+            }
+
+            try{
+                localRepositoryPort.atualizarLocal(local);
+
+            }catch (Exception e){
+                throw new BusinessException("Ocorreu um erro ao atualizar o local", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            log.info("Local atualizado com sucesso. id={}", id);
+
+        } finally {
+            MDC.remove("operation");
         }
     }
 }

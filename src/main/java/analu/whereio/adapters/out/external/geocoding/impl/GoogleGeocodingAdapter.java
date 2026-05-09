@@ -4,7 +4,9 @@ import analu.whereio.adapters.out.external.geocoding.record.ApiResponse;
 import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
 import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.boot.cfgxml.internal.ConfigLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -13,70 +15,70 @@ import org.springframework.web.util.UriComponentsBuilder;
 import tools.jackson.databind.JsonNode;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 @Component
 @RequiredArgsConstructor
 public class GoogleGeocodingAdapter implements LatitudeLongitudeInterfacePort{
 
+    private static final Logger log = LoggerFactory.getLogger(GoogleGeocodingAdapter.class);
+
     private final RestTemplate restTemplate;
 
     private final WebClient webClient;
 
-//    @Value("${google.map.api.key}")
+    @Value("${google.map.api.key}")
     private String apiKey;
 
     public LatitudeLongitudeRecord ConverterEnderecoParaCoordenadas(String endereco) throws IOException, InterruptedException {
-
-        Properties props = new Properties();
-
-        InputStream input = ConfigLoader.class
-                .getClassLoader()
-                .getResourceAsStream("application.properties");
-
-        props.load(input);
-
-        String apikey = props.getProperty("google.map.api.key");
 
         String uri = "https://maps.googleapis.com/maps/api/geocode/json";
 
         String finalUri = UriComponentsBuilder
                 .fromUriString(uri)
                 .queryParam("address", endereco)
-                .queryParam("key", apikey)
+                .queryParam("key", apiKey)
                 .toUriString();
 
-        ResponseEntity<JsonNode> response =
-                restTemplate.getForEntity(finalUri, JsonNode.class);
+        try {
+            log.info("Chamando Google Geocoding API. endereco={}", endereco);
 
-        JsonNode body = response.getBody();
+            ResponseEntity<JsonNode> response =
+                    restTemplate.getForEntity(finalUri, JsonNode.class);
 
-        String jsonReponse = body
-                .path("results")
-                .get(0)
-                .path("formatted_address")
-                .asText();
+            JsonNode body = response.getBody();
 
-        System.out.println(jsonReponse);
+            log.info("Resposta recebida do Google Geocoding API. resultados={}", body.path("results").size());
 
-         String latitude = body
-                .path("results")
-                .get(0)
-                .path("geometry")
-                .path("location")
-                .path("lat")
-                .asText();
+            String jsonReponse = body
+                    .path("results")
+                    .get(0)
+                    .path("formatted_address")
+                    .asText();
 
-        String longitude = body
-                .path("results")
-                .get(0)
-                .path("geometry")
-                .path("location")
-                .path("lng")
-                .asText();
+            System.out.println(jsonReponse);
 
-        return new LatitudeLongitudeRecord(longitude, longitude);
+             String latitude = body
+                    .path("results")
+                    .get(0)
+                    .path("geometry")
+                    .path("location")
+                    .path("lat")
+                    .asText();
+
+            String longitude = body
+                    .path("results")
+                    .get(0)
+                    .path("geometry")
+                    .path("location")
+                    .path("lng")
+                    .asText();
+
+            return new LatitudeLongitudeRecord(longitude, longitude);
+
+        } catch (Exception e) {
+            log.error("Falha na chamada ao Google Geocoding API. endereco={} erro={}", endereco, e.getMessage(), e);
+            throw e;
+        }
     }
 
     public ApiResponse buscarLocalizacao(String endereco) throws IOException, InterruptedException {
@@ -86,21 +88,30 @@ public class GoogleGeocodingAdapter implements LatitudeLongitudeInterfacePort{
 //                sessionToken
 //        );
 
+        try {
+            log.info("Chamando Google Geocoding API. endereco={}", endereco);
 
-        ApiResponse location =  webClient
-                .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .host("maps.googleapis.com")
-                        .path("/maps/api/geocode/json")
-                        .queryParam("key", apiKey)
-                        .queryParam("address", endereco)
-                        .build())
+            ApiResponse location =  webClient
+                    .get()
+                    .uri(uriBuilder -> uriBuilder
+                            .scheme("https")
+                            .host("maps.googleapis.com")
+                            .path("/maps/api/geocode/json")
+                            .queryParam("key", apiKey)
+                            .queryParam("address", endereco)
+                            .build())
 //                .header("X-Goog-Api-Key")
-                .retrieve()
-                .bodyToMono(ApiResponse.class)
-                .block();
+                    .retrieve()
+                    .bodyToMono(ApiResponse.class)
+                    .block();
 
-        return location;
+            log.info("Resposta recebida do Google Geocoding API. resultados={}", location != null && location.getResults() != null ? location.getResults().size() : 0);
+
+            return location;
+
+        } catch (Exception e) {
+            log.error("Falha na chamada ao Google Geocoding API. endereco={} erro={}", endereco, e.getMessage(), e);
+            throw e;
+        }
     }
 }

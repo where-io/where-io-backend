@@ -32,6 +32,9 @@ class AtualizarLocalUsecaseImplTest {
     @Mock
     private LatitudeLongitudeInterfacePort latitudeLongitudePort;
 
+    @Mock
+    private SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
+
     @InjectMocks
     private AtualizarLocalUsecaseImpl atualizarLocalUsecaseImpl;
 
@@ -57,6 +60,8 @@ class AtualizarLocalUsecaseImplTest {
         localParaAtualizar = new Local();
         localParaAtualizar.setNome("Restaurante Bom Sabor Atualizado");
         localParaAtualizar.setEndereco(endereco);
+
+        lenient().doNothing().when(sincronizarTagsDoLocalService).aplicar(any(Local.class));
     }
 
     @Nested

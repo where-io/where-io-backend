@@ -1,9 +1,13 @@
 package analu.whereio.adapters.in.web.dto.request;
 
 import analu.whereio.application.model.Coordenadas;
+import analu.whereio.application.model.Categoria;
 import analu.whereio.application.model.Endereco;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -18,5 +22,9 @@ public class LocalDtoRequest {
     private Endereco endereco;
 
     private Coordenadas coordenadas;
+    @Builder.Default
+    private List<String> idTags = new ArrayList<>();
+    @Builder.Default
+    private List<Categoria> tags = new ArrayList<>();
 
 }
