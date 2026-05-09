@@ -42,7 +42,7 @@ config/                   → Spring beans (WebClient, RestTemplate, CORS, Mongo
 ### Key domain concepts
 
 - **Local** — A place (restaurant, bar, etc.) with an address (`Endereco`), coordinates (`Coordenadas`), and a list of visits.
-- **Visita** — A visit record linked to a `Local` by `idLocal`, with a date, rating (1-5), and comment.
+- **Visita** — A visit record linked to a `Local` by `idLocal`, with a date, rating (`RestauranteAvaliacao` enum: OTIMO=1 … PESSIMO=5), and comment.
 
 ### Data flow for creating a Local
 
@@ -70,8 +70,21 @@ config/                   → Spring beans (WebClient, RestTemplate, CORS, Mongo
 - One use case interface per operation under `ports/in/` (e.g., `CadastrarLocalUsecase`, `RemoverLocalUsecase`).
 - Converters (`LocalConverter`, `VisitaConverter`) handle DTO ↔ domain mapping in the web layer.
 - Persistence mappers (`LocalPersistenceMapper`, `VisitaPersistanceMapper`) use MapStruct for entity ↔ domain mapping.
+- `LocalServiceMapper` in `application/mapper/` is a MapStruct mapper used inside the application layer (entity ↔ domain).
 - `BusinessException` carries an `HttpStatus`; `GlobalExceptionHandler` maps it to the response.
 - The Google API key is loaded from `application.properties` as `google.map.api.key` using `dotenv-java`.
+
+### Logging
+
+Services use SLF4J (`LoggerFactory.getLogger(...)`) with MDC for structured logging. `MdcLoggingFilter` (runs at `@Order(1)`) automatically injects `requestId`, `httpMethod`, `requestUri`, and `clientIp` into MDC for every request. Use case implementations add `operation` and `entityId` manually via `MDC.put(...)` inside a try/finally block that calls `MDC.remove(...)` on exit.
+
+### Testing
+
+Tests use **JUnit 5 + Mockito** (`@ExtendWith(MockitoExtension.class)`). Test classes are organized with `@Nested` inner classes and `@DisplayName` labels following the pattern `"METHOD /path - methodName"` for the outer class and plain descriptions for each `@Test`. Coverage exists at all three layers:
+
+- `adapters/in/web/` — controller tests (mock all use cases + converter)
+- `application/service/` — use case impl tests (mock ports)
+- `adapters/out/persistence/impl/` — repository adapter tests (mock Spring Data repositories)
 
 ### External dependencies
 

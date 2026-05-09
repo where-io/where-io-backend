@@ -14,5 +14,7 @@ public class Local {
     private String nome;
     private Endereco endereco;
     private Coordenadas coordenadas;
+    private List<String> idTags = new ArrayList<>();
+    private List<Categoria> tags = new ArrayList<>();
     private List<Visita> visitas = new ArrayList<>();
 }
