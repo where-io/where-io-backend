@@ -1,0 +1,8 @@
+package analu.whereio.application.ports.in.auth;
+
+import analu.whereio.application.model.AuthTokens;
+
+public interface RegisterUserUsecase {
+
+    AuthTokens execute(String email, String rawPassword, String nome, String nomeUsuario);
+}

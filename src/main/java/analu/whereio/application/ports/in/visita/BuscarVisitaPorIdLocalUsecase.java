@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface BuscarVisitaPorIdLocalUsecase {
 
-    List<VisitaDtoResponse> execute(String idLocal);
+    List<VisitaDtoResponse> execute(String idLocal, String userId);
 }

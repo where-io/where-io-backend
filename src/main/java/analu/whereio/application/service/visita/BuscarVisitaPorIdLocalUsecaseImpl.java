@@ -2,7 +2,9 @@ package analu.whereio.application.service.visita;
 
 import analu.whereio.adapters.in.web.converter.VisitaConverter;
 import analu.whereio.adapters.in.web.dto.response.VisitaDtoResponse;
+import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.visita.BuscarVisitaPorIdLocalUsecase;
+import analu.whereio.application.ports.out.LocalRepositoryPort;
 import analu.whereio.application.ports.out.VisitaRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +23,21 @@ public class BuscarVisitaPorIdLocalUsecaseImpl implements BuscarVisitaPorIdLocal
     private static final Logger log = LoggerFactory.getLogger(BuscarVisitaPorIdLocalUsecaseImpl.class);
 
     private final VisitaRepositoryPort visitaRepositoryPort;
+    private final LocalRepositoryPort localRepositoryPort;
     private final VisitaConverter visitaConverter;
 
     @Override
-    public List<VisitaDtoResponse> execute(String idLocal) {
+    public List<VisitaDtoResponse> execute(String idLocal, String userId) {
 
         MDC.put("operation", "buscarVisitas");
         try{
             log.info("Iniciando busca de visitas por idLocal. idLocal={}", idLocal);
+            Local local = localRepositoryPort.buscarPorIdLocal(idLocal);
+            if (local == null || local.getOwnerUserId() == null || !local.getOwnerUserId().equals(userId)) {
+                throw new BusinessException("Local não encontrado", HttpStatus.NOT_FOUND);
+            }
             List<VisitaDtoResponse> lista = visitaRepositoryPort
-                    .buscarVisitasPorIdLocal(idLocal)
+                    .buscarVisitasPorIdLocal(idLocal, userId)
                     .stream()
                     .map(visitaConverter::toResponse)
                     .toList();
@@ -38,7 +45,9 @@ public class BuscarVisitaPorIdLocalUsecaseImpl implements BuscarVisitaPorIdLocal
             log.info("Busca de visitas concluida. idLocal={} quantidade={}", idLocal, lista.size());
             return lista;
 
-        }catch (Exception e){
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
             throw new BusinessException("Ocorreu um erro ao buscar as visitas por id do local", HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {
             MDC.remove("operation");

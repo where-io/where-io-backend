@@ -17,8 +17,11 @@ public class LocalEntity {
 
     @Id
     private String id;
+    private String ownerUserId;
     private String nome;
     private Endereco endereco;
     private Coordenadas coordenadas;
     private List<String> idTags = new ArrayList<>();
+    private String imagemUrl;
+    private List<String> fotos = new ArrayList<>();
 }

@@ -30,7 +30,12 @@ public class CadastrarVisitaUsecaseImpl implements CadastrarVisitaUsecase {
         try {
             log.info("Iniciando cadastro de visita. idLocal={}", visita.getIdLocal());
 
-            if(isNull(localRepositoryPort.buscarPorIdLocal(visita.getIdLocal()))){
+            if (visita.getUserId() == null || visita.getUserId().isBlank()) {
+                throw new BusinessException("Usuário da visita é obrigatório", HttpStatus.BAD_REQUEST);
+            }
+
+            var local = localRepositoryPort.buscarPorIdLocal(visita.getIdLocal());
+            if (isNull(local) || local.getOwnerUserId() == null || !local.getOwnerUserId().equals(visita.getUserId())) {
                 log.info("Validacao de existencia do local falhou. idLocal={}", visita.getIdLocal());
                 throw new BusinessException("Não existe restaurante com esse id", HttpStatus.NOT_FOUND);
             }

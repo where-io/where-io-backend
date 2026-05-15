@@ -21,7 +21,6 @@ public class LocalRepositoryAdapter implements LocalRepositoryPort {
     private final LocalRepository repository;
     private final LocalPersistenceMapper mapper;
 
-
     @Override
     public Local cadastrarLocal(Local local) {
         Local salvo = mapper.toDomain(repository.save(mapper.toEntity(local)));
@@ -30,26 +29,21 @@ public class LocalRepositoryAdapter implements LocalRepositoryPort {
     }
 
     @Override
-    public Local buscarPorNomeLocal(String nome) {
-        Local resultado = mapper.toDomain(repository.findByNome(nome));
-        return resultado;
+    public Local buscarPorNomeLocal(String nome, String ownerUserId) {
+        LocalEntity entity = repository.findByNomeAndOwnerUserId(nome, ownerUserId);
+        return entity == null ? null : mapper.toDomain(entity);
     }
 
     @Override
-    public List<Local> buscarTodosLocal() {
-        log.debug("Buscando todos os locais no MongoDB.");
-        List<Local> lista = repository
-                .findAll()
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
-        return lista;
+    public List<Local> buscarTodosLocalPorUsuario(String ownerUserId) {
+        log.debug("Buscando locais por usuário no MongoDB. ownerUserId={}", ownerUserId);
+        return repository.findAllByOwnerUserId(ownerUserId).stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public Local buscarPorIdLocal(String id) {
-        Local resultado = mapper.toDomain(repository.findById(id).orElse(null));
-        return resultado;
+        LocalEntity entity = repository.findById(id).orElse(null);
+        return entity == null ? null : mapper.toDomain(entity);
     }
 
     @Override
@@ -66,9 +60,8 @@ public class LocalRepositoryAdapter implements LocalRepositoryPort {
     }
 
     @Override
-    public Local buscarPorCep(String cep) {
-        Local resultado = mapper.toDomain(repository.findByEndereco_Cep(cep));
-        log.debug("Resultado da busca por CEP. encontrado={}", resultado != null);
-        return resultado;
+    public Local buscarPorCep(String cep, String ownerUserId) {
+        LocalEntity entity = repository.findByEndereco_CepAndOwnerUserId(cep, ownerUserId);
+        return entity == null ? null : mapper.toDomain(entity);
     }
 }

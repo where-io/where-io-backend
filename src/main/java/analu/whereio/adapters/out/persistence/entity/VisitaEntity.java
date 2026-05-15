@@ -14,6 +14,7 @@ public class VisitaEntity {
 
     @Id
     private String id;
+    private String userId;
     private LocalDate dataVisita;
     private int avaliacao;
     private String comentario;

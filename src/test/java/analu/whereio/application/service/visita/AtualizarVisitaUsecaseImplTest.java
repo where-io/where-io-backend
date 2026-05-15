@@ -28,6 +28,8 @@ import static org.mockito.Mockito.when;
 @DisplayName("AtualizarVisitaUsecaseImpl")
 class AtualizarVisitaUsecaseImplTest {
 
+    private static final String USER_ID = "user-99";
+
     @Mock
     private VisitaRepositoryPort visitaRepositoryPort;
 
@@ -57,12 +59,27 @@ class AtualizarVisitaUsecaseImplTest {
 
             BusinessException excecao = assertThrows(
                     BusinessException.class,
-                    () -> atualizarVisitaUsecase.execute(ID_VISITA, visita)
+                    () -> atualizarVisitaUsecase.execute(ID_VISITA, visita, USER_ID)
             );
 
             assertAll(
                     () -> assertEquals("Visita não encontrada", excecao.getMessage()),
                     () -> assertEquals(HttpStatus.NOT_FOUND, excecao.getStatus())
+            );
+            verify(visitaRepositoryPort, never()).atualizarVisita(any());
+        }
+
+        @Test
+        @DisplayName("deve lançar NOT_FOUND quando userId não coincide")
+        void deveLancarQuandoUsuarioDiferente() {
+            Visita visitaExistente = new Visita();
+            visitaExistente.setId(ID_VISITA);
+            visitaExistente.setUserId("outro");
+            when(visitaRepositoryPort.buscarPorId(ID_VISITA)).thenReturn(visitaExistente);
+
+            assertThrows(
+                    BusinessException.class,
+                    () -> atualizarVisitaUsecase.execute(ID_VISITA, visita, USER_ID)
             );
             verify(visitaRepositoryPort, never()).atualizarVisita(any());
         }
@@ -77,12 +94,14 @@ class AtualizarVisitaUsecaseImplTest {
         void deveSetarIdEChamarAtualizarVisitaQuandoSucesso() {
             Visita visitaExistente = new Visita();
             visitaExistente.setId(ID_VISITA);
+            visitaExistente.setUserId(USER_ID);
             when(visitaRepositoryPort.buscarPorId(ID_VISITA)).thenReturn(visitaExistente);
 
-            atualizarVisitaUsecase.execute(ID_VISITA, visita);
+            atualizarVisitaUsecase.execute(ID_VISITA, visita, USER_ID);
 
             assertAll(
                     () -> assertEquals(ID_VISITA, visita.getId()),
+                    () -> assertEquals(USER_ID, visita.getUserId()),
                     () -> verify(visitaRepositoryPort).atualizarVisita(visita)
             );
         }
@@ -92,12 +111,13 @@ class AtualizarVisitaUsecaseImplTest {
         void deveLancarBusinessExceptionQuandoAtualizarVisitaFalha() {
             Visita visitaExistente = new Visita();
             visitaExistente.setId(ID_VISITA);
+            visitaExistente.setUserId(USER_ID);
             when(visitaRepositoryPort.buscarPorId(ID_VISITA)).thenReturn(visitaExistente);
             doThrow(new RuntimeException("erro de persistência")).when(visitaRepositoryPort).atualizarVisita(any());
 
             BusinessException excecao = assertThrows(
                     BusinessException.class,
-                    () -> atualizarVisitaUsecase.execute(ID_VISITA, visita)
+                    () -> atualizarVisitaUsecase.execute(ID_VISITA, visita, USER_ID)
             );
 
             assertAll(

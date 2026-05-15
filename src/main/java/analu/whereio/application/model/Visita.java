@@ -11,6 +11,8 @@ import java.time.LocalDate;
 public class Visita {
 
     private String id;
+    /** ID do usuário que registrou a visita. */
+    private String userId;
     private LocalDate dataVisita;
     private int avaliacao;
     private String comentario;

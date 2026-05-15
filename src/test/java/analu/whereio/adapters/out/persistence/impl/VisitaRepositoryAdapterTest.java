@@ -114,6 +114,7 @@ class VisitaRepositoryAdapterTest {
         @DisplayName("deve retornar lista de domínios mapeados quando há visitas para o local")
         void deveRetornarListaDeVisitasDoLocal() {
             String idLocal = "local-id-1";
+            String userId = "user-1";
 
             VisitaEntity segundaEntity = new VisitaEntity();
             segundaEntity.setId("visita-id-2");
@@ -123,11 +124,11 @@ class VisitaRepositoryAdapterTest {
             segundaVisita.setId("visita-id-2");
             segundaVisita.setIdLocal(idLocal);
 
-            when(repository.findByIdLocal(idLocal)).thenReturn(List.of(visitaEntity, segundaEntity));
+            when(repository.findByIdLocalAndUserId(idLocal, userId)).thenReturn(List.of(visitaEntity, segundaEntity));
             when(mapper.toDomain(visitaEntity)).thenReturn(visita);
             when(mapper.toDomain(segundaEntity)).thenReturn(segundaVisita);
 
-            List<Visita> resultado = visitaRepositoryAdapter.buscarVisitasPorIdLocal(idLocal);
+            List<Visita> resultado = visitaRepositoryAdapter.buscarVisitasPorIdLocal(idLocal, userId);
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -135,7 +136,7 @@ class VisitaRepositoryAdapterTest {
                     () -> assertEquals("visita-id-1", resultado.get(0).getId()),
                     () -> assertEquals("visita-id-2", resultado.get(1).getId())
             );
-            verify(repository).findByIdLocal(idLocal);
+            verify(repository).findByIdLocalAndUserId(idLocal, userId);
             verify(mapper).toDomain(visitaEntity);
             verify(mapper).toDomain(segundaEntity);
         }
@@ -144,16 +145,17 @@ class VisitaRepositoryAdapterTest {
         @DisplayName("deve retornar lista vazia quando não há visitas para o local")
         void deveRetornarListaVaziaQuandoNaoHaVisitas() {
             String idLocal = "local-sem-visitas";
+            String userId = "user-1";
 
-            when(repository.findByIdLocal(idLocal)).thenReturn(List.of());
+            when(repository.findByIdLocalAndUserId(idLocal, userId)).thenReturn(List.of());
 
-            List<Visita> resultado = visitaRepositoryAdapter.buscarVisitasPorIdLocal(idLocal);
+            List<Visita> resultado = visitaRepositoryAdapter.buscarVisitasPorIdLocal(idLocal, userId);
 
             assertAll(
                     () -> assertNotNull(resultado),
                     () -> assertTrue(resultado.isEmpty())
             );
-            verify(repository).findByIdLocal(idLocal);
+            verify(repository).findByIdLocalAndUserId(idLocal, userId);
             verifyNoMoreInteractions(mapper);
         }
     }

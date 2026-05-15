@@ -14,6 +14,7 @@ import analu.whereio.application.ports.in.local.BuscarLocalUsecase;
 import analu.whereio.application.ports.in.local.BuscarTodosLocalUsecase;
 import analu.whereio.application.ports.in.local.CadastrarLocalUsecase;
 import analu.whereio.application.ports.in.local.RemoverLocalUsecase;
+import analu.whereio.config.security.JwtUserPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,6 +34,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("LocalController")
 class LocalControllerTest {
+
+    private static final JwtUserPrincipal PRINCIPAL = JwtUserPrincipal.testPrincipal("user-1");
 
     @Mock
     private CadastrarLocalUsecase cadastrarLocalUsecase;
@@ -104,12 +107,13 @@ class LocalControllerTest {
             when(cadastrarLocalUsecase.execute(local)).thenReturn(local);
             when(mapper.toResponse(local)).thenReturn(localDtoResponse);
 
-            ResponseEntity<String> resposta = localController.cadastrarLocal(localDtoRequest);
+            ResponseEntity<String> resposta = localController.cadastrarLocal(PRINCIPAL, localDtoRequest);
 
             assertAll(
                     () -> assertNotNull(resposta),
                     () -> assertEquals(HttpStatus.OK, resposta.getStatusCode()),
-                    () -> assertEquals("local-id-1", resposta.getBody())
+                    () -> assertEquals("local-id-1", resposta.getBody()),
+                    () -> assertEquals("user-1", local.getOwnerUserId())
             );
             verify(mapper).toDomain(localDtoRequest);
             verify(cadastrarLocalUsecase).execute(local);
@@ -126,14 +130,14 @@ class LocalControllerTest {
         void deveDeletarLocalERetornar200SemBody() {
             String id = "local-id-1";
 
-            ResponseEntity<Void> resposta = localController.deletarLocal(id);
+            ResponseEntity<Void> resposta = localController.deletarLocal(PRINCIPAL, id);
 
             assertAll(
                     () -> assertNotNull(resposta),
                     () -> assertEquals(HttpStatus.OK, resposta.getStatusCode()),
                     () -> assertNull(resposta.getBody())
             );
-            verify(removerLocalUsecase).execute(id);
+            verify(removerLocalUsecase).execute(id, "user-1");
             verifyNoInteractions(mapper);
         }
     }
@@ -182,11 +186,11 @@ class LocalControllerTest {
             segundoResponse.setId("local-id-2");
             segundoResponse.setNome("Bar do João");
 
-            when(buscarTodosLocalUsecase.execute()).thenReturn(List.of(local, segundoLocal));
+            when(buscarTodosLocalUsecase.execute("user-1")).thenReturn(List.of(local, segundoLocal));
             when(mapper.toResponse(local)).thenReturn(localDtoResponse);
             when(mapper.toResponse(segundoLocal)).thenReturn(segundoResponse);
 
-            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais();
+            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais(PRINCIPAL);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -196,7 +200,7 @@ class LocalControllerTest {
                     () -> assertEquals("local-id-1", resposta.getBody().get(0).getId()),
                     () -> assertEquals("local-id-2", resposta.getBody().get(1).getId())
             );
-            verify(buscarTodosLocalUsecase).execute();
+            verify(buscarTodosLocalUsecase).execute("user-1");
             verify(mapper).toResponse(local);
             verify(mapper).toResponse(segundoLocal);
         }
@@ -204,9 +208,9 @@ class LocalControllerTest {
         @Test
         @DisplayName("deve retornar 200 OK com lista vazia quando não há locais cadastrados")
         void deveRetornarListaVaziaQuandoNaoHaLocais() {
-            when(buscarTodosLocalUsecase.execute()).thenReturn(List.of());
+            when(buscarTodosLocalUsecase.execute("user-1")).thenReturn(List.of());
 
-            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais();
+            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais(PRINCIPAL);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -214,7 +218,7 @@ class LocalControllerTest {
                     () -> assertNotNull(resposta.getBody()),
                     () -> assertTrue(resposta.getBody().isEmpty())
             );
-            verify(buscarTodosLocalUsecase).execute();
+            verify(buscarTodosLocalUsecase).execute("user-1");
             verifyNoMoreInteractions(mapper);
         }
     }
@@ -230,7 +234,7 @@ class LocalControllerTest {
 
             when(mapper.toDomain(localDtoRequest)).thenReturn(local);
 
-            ResponseEntity<LocalDtoResponse> resposta = localController.atualizarLocal(id, localDtoRequest);
+            ResponseEntity<LocalDtoResponse> resposta = localController.atualizarLocal(PRINCIPAL, id, localDtoRequest);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -238,7 +242,7 @@ class LocalControllerTest {
                     () -> assertNull(resposta.getBody())
             );
             verify(mapper).toDomain(localDtoRequest);
-            verify(atualizarLocalUsecase).execute(local, id);
+            verify(atualizarLocalUsecase).execute(local, id, "user-1");
         }
     }
 }

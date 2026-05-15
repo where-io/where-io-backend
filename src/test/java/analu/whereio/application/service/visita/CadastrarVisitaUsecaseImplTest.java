@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 @DisplayName("CadastrarVisitaUsecaseImpl")
 class CadastrarVisitaUsecaseImplTest {
 
+    private static final String USER_ID = "user-123";
+
     @Mock
     private LocalRepositoryPort localRepositoryPort;
 
@@ -44,13 +46,37 @@ class CadastrarVisitaUsecaseImplTest {
     void setUp() {
         visita = new Visita();
         visita.setIdLocal("local-123");
+        visita.setUserId(USER_ID);
         visita.setDataVisita(LocalDate.of(2026, 4, 5));
         visita.setAvaliacao(4);
         visita.setComentario("Ótimo lugar");
     }
 
     @Nested
-    @DisplayName("Quando o local não existe")
+    @DisplayName("Quando userId da visita é inválido")
+    class QuandoUserIdInvalido {
+
+        @Test
+        @DisplayName("deve lançar BAD_REQUEST quando userId está em branco")
+        void deveLancarQuandoUserIdEmBranco() {
+            visita.setUserId(" ");
+
+            BusinessException excecao = assertThrows(
+                    BusinessException.class,
+                    () -> cadastrarVisitaUsecase.execute(visita)
+            );
+
+            assertAll(
+                    () -> assertEquals("Usuário da visita é obrigatório", excecao.getMessage()),
+                    () -> assertEquals(HttpStatus.BAD_REQUEST, excecao.getStatus())
+            );
+            verify(localRepositoryPort, never()).buscarPorIdLocal(any());
+            verify(visitaRepositoryPort, never()).adicionarVisita(any());
+        }
+    }
+
+    @Nested
+    @DisplayName("Quando o local não existe ou não pertence ao usuário")
     class QuandoLocalNaoExiste {
 
         @Test
@@ -69,6 +95,23 @@ class CadastrarVisitaUsecaseImplTest {
             );
             verify(visitaRepositoryPort, never()).adicionarVisita(any());
         }
+
+        @Test
+        @DisplayName("deve lançar NOT_FOUND quando o local pertence a outro usuário")
+        void deveLancarQuandoOwnerDiferente() {
+            Local local = new Local();
+            local.setId("local-123");
+            local.setOwnerUserId("outro-user");
+            when(localRepositoryPort.buscarPorIdLocal("local-123")).thenReturn(local);
+
+            BusinessException excecao = assertThrows(
+                    BusinessException.class,
+                    () -> cadastrarVisitaUsecase.execute(visita)
+            );
+
+            assertEquals(HttpStatus.NOT_FOUND, excecao.getStatus());
+            verify(visitaRepositoryPort, never()).adicionarVisita(any());
+        }
     }
 
     @Nested
@@ -80,6 +123,7 @@ class CadastrarVisitaUsecaseImplTest {
         void deveRetornarIdQuandoCadastroComSucesso() {
             Local local = new Local();
             local.setId("local-123");
+            local.setOwnerUserId(USER_ID);
             when(localRepositoryPort.buscarPorIdLocal("local-123")).thenReturn(local);
             when(visitaRepositoryPort.adicionarVisita(visita)).thenReturn("visita-456");
 
@@ -96,6 +140,7 @@ class CadastrarVisitaUsecaseImplTest {
         void deveLancarBusinessExceptionQuandoAdicionarVisitaFalha() {
             Local local = new Local();
             local.setId("local-123");
+            local.setOwnerUserId(USER_ID);
             when(localRepositoryPort.buscarPorIdLocal("local-123")).thenReturn(local);
             when(visitaRepositoryPort.adicionarVisita(visita)).thenThrow(new RuntimeException("erro de persistência"));
 

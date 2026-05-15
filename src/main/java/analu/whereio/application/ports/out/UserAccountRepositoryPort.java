@@ -1,0 +1,18 @@
+package analu.whereio.application.ports.out;
+
+import analu.whereio.application.model.UserAccount;
+
+import java.util.Optional;
+
+public interface UserAccountRepositoryPort {
+
+    UserAccount save(UserAccount user);
+
+    Optional<UserAccount> findByEmail(String email);
+
+    Optional<UserAccount> findById(String id);
+
+    Optional<UserAccount> findByNome(String nomeUsuarioNormalizado);
+
+    boolean existsByEmail(String email);
+}

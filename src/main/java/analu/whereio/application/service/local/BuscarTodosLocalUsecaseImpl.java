@@ -25,16 +25,16 @@ public class BuscarTodosLocalUsecaseImpl implements BuscarTodosLocalUsecase {
     private final SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
 
     @Override
-    public List<Local> execute() {
+    public List<Local> execute(String ownerUserId) {
 
         MDC.put("operation", "buscarTodosLocal");
         try{
-            log.info("Iniciando busca de todos os locais.");
+            log.info("Iniciando busca de locais do usuário. ownerUserId={}", ownerUserId);
             List<Local> lista = localRepositoryPort
-                    .buscarTodosLocal()
+                    .buscarTodosLocalPorUsuario(ownerUserId)
                     .stream()
                     .map(local ->{
-                        local.setVisitas(visitaRepository.buscarVisitasPorIdLocal(local.getId()));
+                        local.setVisitas(visitaRepository.buscarVisitasPorIdLocal(local.getId(), ownerUserId));
                         sincronizarTagsDoLocalService.hidratarParaResposta(local);
                         return local;
                     })

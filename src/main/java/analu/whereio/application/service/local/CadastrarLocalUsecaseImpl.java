@@ -35,12 +35,16 @@ public class CadastrarLocalUsecaseImpl implements CadastrarLocalUsecase {
         try {
             log.info("Iniciando cadastro de local. nome={}", local.getNome());
 
-            if(!isNull(localRepositoryPort.buscarPorNomeLocal(local.getNome()))){
+            if (local.getOwnerUserId() == null || local.getOwnerUserId().isBlank()) {
+                throw new BusinessException("Usuário proprietário do local é obrigatório", HttpStatus.BAD_REQUEST);
+            }
+
+            if (!isNull(localRepositoryPort.buscarPorNomeLocal(local.getNome(), local.getOwnerUserId()))) {
                 log.warn("Tentativa de cadastro de local duplicado. nome={}", local.getNome());
                 throw new BusinessException("Local já foi cadastrado", HttpStatus.UNPROCESSABLE_CONTENT);
             }
 
-            if(!isNull(localRepositoryPort.buscarPorCep(local.getEndereco().getCep()))){
+            if (!isNull(localRepositoryPort.buscarPorCep(local.getEndereco().getCep(), local.getOwnerUserId()))) {
                 log.warn("Tentativa de cadastro de local duplicado. nome={}", local.getNome());
                 throw new BusinessException("Local já foi cadastrado", HttpStatus.UNPROCESSABLE_CONTENT);
             }

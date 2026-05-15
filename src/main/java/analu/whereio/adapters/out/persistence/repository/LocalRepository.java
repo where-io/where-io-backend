@@ -5,10 +5,16 @@ import analu.whereio.application.model.Endereco;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface LocalRepository extends MongoRepository<LocalEntity, String> {
 
-    LocalEntity findByNome(String nome);
+    LocalEntity findByNomeAndOwnerUserId(String nome, String ownerUserId);
+
+    LocalEntity findByEndereco_CepAndOwnerUserId(String cep, String ownerUserId);
+
     LocalEntity findByEndereco(Endereco endereco);
-    LocalEntity findByEndereco_Cep(String cep);
+
+    List<LocalEntity> findAllByOwnerUserId(String ownerUserId);
 }

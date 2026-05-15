@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import static java.util.Objects.isNull;
 
@@ -29,36 +30,67 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
     private final SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
 
     @Override
-    public void execute(Local local, String id) {
+    public void execute(Local local, String id, String ownerUserId) {
 
         MDC.put("operation", "atualizarLocal");
         try {
             log.info("Iniciando atualizacao de local. id={}", id);
 
-            if(isNull(localRepositoryPort.buscarPorIdLocal(id))){
+            Local existente = localRepositoryPort.buscarPorIdLocal(id);
+            if (isNull(existente) || existente.getOwnerUserId() == null || !existente.getOwnerUserId().equals(ownerUserId)) {
                 BusinessException ex = new BusinessException("ID de local não existe", HttpStatus.NOT_FOUND);
                 log.warn("Local nao encontrado para atualizacao. id={}", id);
                 throw ex;
             }
 
             local.setId(id);
+            local.setOwnerUserId(existente.getOwnerUserId());
+
+            if (local.getImagemUrl() == null) {
+                local.setImagemUrl(existente.getImagemUrl());
+            } else if (local.getImagemUrl().isBlank()) {
+                local.setImagemUrl(null);
+            }
+
+            /*
+             * PUT não envia {@code fotos}; MapStruct/Jackson deixa lista vazia, não null.
+             * Preservar galeria já persistida (upload/remove de foto usa {@code atualizarLocal} direto no repositório).
+             */
+            if (local.getFotos() == null || local.getFotos().isEmpty()) {
+                local.setFotos(
+                        existente.getFotos() == null
+                                ? new ArrayList<>()
+                                : new ArrayList<>(existente.getFotos()));
+            }
 
             sincronizarTagsDoLocalService.aplicar(local);
 
-            try{
-                LatitudeLongitudeRecord record = latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
+            if (coordenadasValidas(local.getCoordenadas())) {
+                log.debug("Atualizacao de local usando coordenadas enviadas na requisicao. id={}", id);
+            } else {
+                try {
+                    LatitudeLongitudeRecord record =
+                            latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
 
-                Coordenadas coordenadas = Coordenadas.builder().build();
+                    Coordenadas coordenadas = Coordenadas.builder().build();
+                    coordenadas.setLatitude(record.latitude());
+                    coordenadas.setLongitude(record.longitude());
+                    local.setCoordenadas(coordenadas);
 
-                coordenadas.setLatitude(record.latitude());
-                coordenadas.setLongitude(record.longitude());
-
-                local.setCoordenadas(coordenadas);
-
-            } catch (RuntimeException | IOException | InterruptedException e) {
-                BusinessException bex = new BusinessException("Local não foi encontrado", HttpStatus.NOT_FOUND);
-                log.warn("Falha ao obter coordenadas na atualizacao do local. id={}", id);
-                throw bex;
+                } catch (RuntimeException | IOException | InterruptedException e) {
+                    if (coordenadasValidas(existente.getCoordenadas())) {
+                        local.setCoordenadas(existente.getCoordenadas());
+                        log.warn(
+                                "Geocoding falhou na atualizacao; mantendo coordenadas ja persistidas. id={}",
+                                id,
+                                e);
+                    } else {
+                        log.warn("Falha ao obter coordenadas na atualizacao do local. id={}", id, e);
+                        throw new BusinessException(
+                                "Não foi possível obter coordenadas para o endereço informado",
+                                HttpStatus.UNPROCESSABLE_ENTITY);
+                    }
+                }
             }
 
             try{
@@ -73,5 +105,17 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
         } finally {
             MDC.remove("operation");
         }
+    }
+
+    private static boolean coordenadasValidas(Coordenadas c) {
+        if (c == null) {
+            return false;
+        }
+        String lat = c.getLatitude();
+        String lng = c.getLongitude();
+        return lat != null
+                && !lat.isBlank()
+                && lng != null
+                && !lng.isBlank();
     }
 }

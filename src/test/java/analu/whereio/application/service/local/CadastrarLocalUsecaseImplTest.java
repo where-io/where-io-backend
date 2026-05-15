@@ -56,11 +56,13 @@ class CadastrarLocalUsecaseImplTest {
 
         localSemCoordenadas = new Local();
         localSemCoordenadas.setNome("Restaurante Bom Sabor");
+        localSemCoordenadas.setOwnerUserId("owner-1");
         localSemCoordenadas.setEndereco(endereco);
         localSemCoordenadas.setCoordenadas(Coordenadas.builder().build());
 
         localComCoordenadas = new Local();
         localComCoordenadas.setNome("Café Central");
+        localComCoordenadas.setOwnerUserId("owner-1");
         localComCoordenadas.setEndereco(endereco);
         localComCoordenadas.setCoordenadas(Coordenadas.builder()
                 .latitude("-23.5505")
@@ -68,6 +70,7 @@ class CadastrarLocalUsecaseImplTest {
                 .build());
 
         lenient().doNothing().when(sincronizarTagsDoLocalService).aplicar(any(Local.class));
+        lenient().when(localRepositoryPort.buscarPorCep(anyString(), eq("owner-1"))).thenReturn(null);
     }
 
     private ApiResponse montarApiResponse(double latitude, double longitude) {
@@ -92,7 +95,7 @@ class CadastrarLocalUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BusinessException com UNPROCESSABLE_ENTITY quando o nome já está cadastrado")
         void deveLancarBusinessExceptionQuandoNomeJaExiste() {
-            when(localRepositoryPort.buscarPorNomeLocal(localSemCoordenadas.getNome()))
+            when(localRepositoryPort.buscarPorNomeLocal(localSemCoordenadas.getNome(), "owner-1"))
                     .thenReturn(localSemCoordenadas);
 
             BusinessException excecao = assertThrows(
@@ -109,7 +112,7 @@ class CadastrarLocalUsecaseImplTest {
         @Test
         @DisplayName("deve não chamar cadastrarLocal quando o nome já existe")
         void naoDeveChamarCadastrarLocalQuandoNomeJaExiste() {
-            when(localRepositoryPort.buscarPorNomeLocal(localSemCoordenadas.getNome()))
+            when(localRepositoryPort.buscarPorNomeLocal(localSemCoordenadas.getNome(), "owner-1"))
                     .thenReturn(localSemCoordenadas);
 
             assertThrows(
@@ -132,7 +135,7 @@ class CadastrarLocalUsecaseImplTest {
             localSalvo.setId("id-gerado");
             localSalvo.setNome(localComCoordenadas.getNome());
 
-            when(localRepositoryPort.buscarPorNomeLocal(localComCoordenadas.getNome())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(localComCoordenadas.getNome(), "owner-1")).thenReturn(null);
             when(localRepositoryPort.cadastrarLocal(localComCoordenadas)).thenReturn(localSalvo);
 
             Local resultado = cadastrarLocalUsecaseImpl.execute(localComCoordenadas);
@@ -159,7 +162,7 @@ class CadastrarLocalUsecaseImplTest {
             localSalvo.setId("id-gerado");
             ApiResponse apiResponse = montarApiResponse(-23.5505, -46.6333);
 
-            when(localRepositoryPort.buscarPorNomeLocal(anyString())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(anyString(), eq("owner-1"))).thenReturn(null);
             when(latitudeLongitudePort.buscarLocalizacao(anyString())).thenReturn(apiResponse);
             when(localRepositoryPort.cadastrarLocal(any())).thenReturn(localSalvo);
 
@@ -181,7 +184,7 @@ class CadastrarLocalUsecaseImplTest {
             localSalvo.setId("id-gerado");
             ApiResponse apiResponse = montarApiResponse(-23.5505, -46.6333);
 
-            when(localRepositoryPort.buscarPorNomeLocal(anyString())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(anyString(), eq("owner-1"))).thenReturn(null);
             when(latitudeLongitudePort.buscarLocalizacao(anyString())).thenReturn(apiResponse);
             when(localRepositoryPort.cadastrarLocal(any())).thenReturn(localSalvo);
 
@@ -198,7 +201,7 @@ class CadastrarLocalUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BusinessException com NOT_FOUND quando geocoding lança IOException")
         void deveLancarBusinessExceptionQuandoGeocodingLancaIOException() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorNomeLocal(anyString())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(anyString(), eq("owner-1"))).thenReturn(null);
             when(latitudeLongitudePort.buscarLocalizacao(anyString()))
                     .thenThrow(new IOException("Erro de conexão"));
 
@@ -216,7 +219,7 @@ class CadastrarLocalUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BusinessException com NOT_FOUND quando geocoding lança InterruptedException")
         void deveLancarBusinessExceptionQuandoGeocodingLancaInterruptedException() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorNomeLocal(anyString())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(anyString(), eq("owner-1"))).thenReturn(null);
             when(latitudeLongitudePort.buscarLocalizacao(anyString()))
                     .thenThrow(new InterruptedException("Thread interrompida"));
 
@@ -234,7 +237,7 @@ class CadastrarLocalUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BusinessException com NOT_FOUND quando geocoding lança RuntimeException")
         void deveLancarBusinessExceptionQuandoGeocodingLancaRuntimeException() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorNomeLocal(anyString())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(anyString(), eq("owner-1"))).thenReturn(null);
             when(latitudeLongitudePort.buscarLocalizacao(anyString()))
                     .thenThrow(new RuntimeException("Erro inesperado"));
 
@@ -257,7 +260,7 @@ class CadastrarLocalUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BusinessException com INTERNAL_SERVER_ERROR quando cadastrarLocal lança Exception")
         void deveLancarBusinessExceptionQuandoCadastrarLocalFalha() {
-            when(localRepositoryPort.buscarPorNomeLocal(localComCoordenadas.getNome())).thenReturn(null);
+            when(localRepositoryPort.buscarPorNomeLocal(localComCoordenadas.getNome(), "owner-1")).thenReturn(null);
             when(localRepositoryPort.cadastrarLocal(localComCoordenadas))
                     .thenThrow(new RuntimeException("Falha no banco de dados"));
 

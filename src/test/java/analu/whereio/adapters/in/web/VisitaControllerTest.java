@@ -8,6 +8,7 @@ import analu.whereio.application.ports.in.visita.AtualizarVisitaUsecase;
 import analu.whereio.application.ports.in.visita.BuscarVisitaPorIdLocalUsecase;
 import analu.whereio.application.ports.in.visita.CadastrarVisitaUsecase;
 import analu.whereio.application.ports.in.visita.RemoverVisitaUsecase;
+import analu.whereio.config.security.JwtUserPrincipal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,8 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("VisitaController")
 class VisitaControllerTest {
+
+    private static final JwtUserPrincipal PRINCIPAL = JwtUserPrincipal.testPrincipal("user-1");
 
     @Mock
     private CadastrarVisitaUsecase cadastrarVisitaUsecase;
@@ -87,10 +90,10 @@ class VisitaControllerTest {
             segundaVisitaResponse.setId("visita-id-2");
             segundaVisitaResponse.setIdLocal(idLocal);
 
-            when(buscarVisitaPorIdLocalUsecase.execute(idLocal))
+            when(buscarVisitaPorIdLocalUsecase.execute(idLocal, "user-1"))
                     .thenReturn(List.of(visitaDtoResponse, segundaVisitaResponse));
 
-            ResponseEntity<List<VisitaDtoResponse>> resposta = visitaController.buscarVisitasPorIdLocal(idLocal);
+            ResponseEntity<List<VisitaDtoResponse>> resposta = visitaController.buscarVisitasPorIdLocal(PRINCIPAL, idLocal);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -100,7 +103,7 @@ class VisitaControllerTest {
                     () -> assertEquals("visita-id-1", resposta.getBody().get(0).getId()),
                     () -> assertEquals("visita-id-2", resposta.getBody().get(1).getId())
             );
-            verify(buscarVisitaPorIdLocalUsecase).execute(idLocal);
+            verify(buscarVisitaPorIdLocalUsecase).execute(idLocal, "user-1");
             verifyNoInteractions(mapper);
         }
 
@@ -109,9 +112,9 @@ class VisitaControllerTest {
         void deveRetornarListaVaziaQuandoNaoHaVisitas() {
             String idLocal = "local-sem-visitas";
 
-            when(buscarVisitaPorIdLocalUsecase.execute(idLocal)).thenReturn(List.of());
+            when(buscarVisitaPorIdLocalUsecase.execute(idLocal, "user-1")).thenReturn(List.of());
 
-            ResponseEntity<List<VisitaDtoResponse>> resposta = visitaController.buscarVisitasPorIdLocal(idLocal);
+            ResponseEntity<List<VisitaDtoResponse>> resposta = visitaController.buscarVisitasPorIdLocal(PRINCIPAL, idLocal);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -119,7 +122,7 @@ class VisitaControllerTest {
                     () -> assertNotNull(resposta.getBody()),
                     () -> assertTrue(resposta.getBody().isEmpty())
             );
-            verify(buscarVisitaPorIdLocalUsecase).execute(idLocal);
+            verify(buscarVisitaPorIdLocalUsecase).execute(idLocal, "user-1");
             verifyNoInteractions(mapper);
         }
     }
@@ -134,12 +137,13 @@ class VisitaControllerTest {
             when(mapper.toDomain(visitaDtoRequest)).thenReturn(visita);
             when(cadastrarVisitaUsecase.execute(visita)).thenReturn("visita-id-gerada");
 
-            ResponseEntity<String> resposta = visitaController.adicionarVisita(visitaDtoRequest);
+            ResponseEntity<String> resposta = visitaController.adicionarVisita(PRINCIPAL, visitaDtoRequest);
 
             assertAll(
                     () -> assertNotNull(resposta),
                     () -> assertEquals(HttpStatus.CREATED, resposta.getStatusCode()),
-                    () -> assertEquals("visita-id-gerada", resposta.getBody())
+                    () -> assertEquals("visita-id-gerada", resposta.getBody()),
+                    () -> assertEquals("user-1", visita.getUserId())
             );
             verify(mapper).toDomain(visitaDtoRequest);
             verify(cadastrarVisitaUsecase).execute(visita);
@@ -155,14 +159,14 @@ class VisitaControllerTest {
         void deveRemoverVisitaERetornar200SemBody() {
             String id = "visita-id-1";
 
-            ResponseEntity<Void> resposta = visitaController.removerVisita(id);
+            ResponseEntity<Void> resposta = visitaController.removerVisita(PRINCIPAL, id);
 
             assertAll(
                     () -> assertNotNull(resposta),
                     () -> assertEquals(HttpStatus.OK, resposta.getStatusCode()),
                     () -> assertNull(resposta.getBody())
             );
-            verify(removerVisitaUsecase).execute(id);
+            verify(removerVisitaUsecase).execute(id, "user-1");
             verifyNoInteractions(mapper);
         }
     }
@@ -178,7 +182,7 @@ class VisitaControllerTest {
 
             when(mapper.toDomain(visitaDtoRequest)).thenReturn(visita);
 
-            ResponseEntity<Void> resposta = visitaController.atualizarVisita(id, visitaDtoRequest);
+            ResponseEntity<Void> resposta = visitaController.atualizarVisita(PRINCIPAL, id, visitaDtoRequest);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -186,7 +190,7 @@ class VisitaControllerTest {
                     () -> assertNull(resposta.getBody())
             );
             verify(mapper).toDomain(visitaDtoRequest);
-            verify(atualizarVisitaUsecase).execute(id, visita);
+            verify(atualizarVisitaUsecase).execute(id, visita, "user-1");
         }
     }
 }
