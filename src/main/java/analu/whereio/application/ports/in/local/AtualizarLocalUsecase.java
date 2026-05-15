@@ -4,5 +4,5 @@ import analu.whereio.application.model.Local;
 
 public interface AtualizarLocalUsecase {
 
-    void execute(Local local, String id);
+    void execute(Local local, String id, String ownerUserId);
 }

@@ -6,17 +6,17 @@ import java.util.List;
 
 public interface LocalRepositoryPort {
 
-        Local cadastrarLocal(Local local);
+    Local cadastrarLocal(Local local);
 
-        Local buscarPorNomeLocal(String nome);
+    Local buscarPorNomeLocal(String nome, String ownerUserId);
 
-        List<Local> buscarTodosLocal();
+    List<Local> buscarTodosLocalPorUsuario(String ownerUserId);
 
-        Local buscarPorIdLocal(String id);
+    Local buscarPorIdLocal(String id);
 
-        void atualizarLocal(Local local);
+    void atualizarLocal(Local local);
 
-        void removerLocalPorId(String id);
+    void removerLocalPorId(String id);
 
-        Local buscarPorCep(String cep);
+    Local buscarPorCep(String cep, String ownerUserId);
 }

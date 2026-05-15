@@ -58,3 +58,4 @@ replay_pid*
 
 # Local application config
 src/main/resources/application.properties
+/uploads

@@ -98,31 +98,33 @@ class LocalRepositoryAdapterTest {
     class BuscarPorNomeLocal {
 
         @Test
-        @DisplayName("deve chamar findByNome e retornar o domínio mapeado")
+        @DisplayName("deve chamar findByNomeAndOwnerUserId e retornar o domínio mapeado")
         void deveBuscarPorNomeERetornarLocal() {
             String nome = "Restaurante Bom Sabor";
+            String ownerUserId = "user-1";
 
-            when(repository.findByNome(nome)).thenReturn(localEntity);
+            when(repository.findByNomeAndOwnerUserId(nome, ownerUserId)).thenReturn(localEntity);
             when(mapper.toDomain(localEntity)).thenReturn(local);
 
-            Local resultado = localRepositoryAdapter.buscarPorNomeLocal(nome);
+            Local resultado = localRepositoryAdapter.buscarPorNomeLocal(nome, ownerUserId);
 
             assertAll(
                     () -> assertNotNull(resultado),
                     () -> assertEquals(nome, resultado.getNome())
             );
-            verify(repository).findByNome(nome);
+            verify(repository).findByNomeAndOwnerUserId(nome, ownerUserId);
             verify(mapper).toDomain(localEntity);
         }
     }
 
     @Nested
-    @DisplayName("buscarTodosLocal")
-    class BuscarTodosLocal {
+    @DisplayName("buscarTodosLocalPorUsuario")
+    class BuscarTodosLocalPorUsuario {
 
         @Test
-        @DisplayName("deve retornar lista de domínios mapeados a partir de todas as entities")
+        @DisplayName("deve retornar lista de domínios mapeados a partir das entities do usuário")
         void deveBuscarTodosLocaisERetornarLista() {
+            String ownerUserId = "user-1";
             LocalEntity segundaEntity = new LocalEntity();
             segundaEntity.setId("local-id-2");
             segundaEntity.setNome("Bar do João");
@@ -131,11 +133,11 @@ class LocalRepositoryAdapterTest {
             segundoLocal.setId("local-id-2");
             segundoLocal.setNome("Bar do João");
 
-            when(repository.findAll()).thenReturn(List.of(localEntity, segundaEntity));
+            when(repository.findAllByOwnerUserId(ownerUserId)).thenReturn(List.of(localEntity, segundaEntity));
             when(mapper.toDomain(localEntity)).thenReturn(local);
             when(mapper.toDomain(segundaEntity)).thenReturn(segundoLocal);
 
-            List<Local> resultado = localRepositoryAdapter.buscarTodosLocal();
+            List<Local> resultado = localRepositoryAdapter.buscarTodosLocalPorUsuario(ownerUserId);
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -143,23 +145,24 @@ class LocalRepositoryAdapterTest {
                     () -> assertEquals("local-id-1", resultado.get(0).getId()),
                     () -> assertEquals("local-id-2", resultado.get(1).getId())
             );
-            verify(repository).findAll();
+            verify(repository).findAllByOwnerUserId(ownerUserId);
             verify(mapper).toDomain(localEntity);
             verify(mapper).toDomain(segundaEntity);
         }
 
         @Test
-        @DisplayName("deve retornar lista vazia quando não há locais cadastrados")
+        @DisplayName("deve retornar lista vazia quando não há locais cadastrados para o usuário")
         void deveRetornarListaVaziaQuandoNaoHaLocais() {
-            when(repository.findAll()).thenReturn(List.of());
+            String ownerUserId = "user-1";
+            when(repository.findAllByOwnerUserId(ownerUserId)).thenReturn(List.of());
 
-            List<Local> resultado = localRepositoryAdapter.buscarTodosLocal();
+            List<Local> resultado = localRepositoryAdapter.buscarTodosLocalPorUsuario(ownerUserId);
 
             assertAll(
                     () -> assertNotNull(resultado),
                     () -> assertTrue(resultado.isEmpty())
             );
-            verify(repository).findAll();
+            verify(repository).findAllByOwnerUserId(ownerUserId);
             verifyNoMoreInteractions(mapper);
         }
     }
@@ -187,18 +190,17 @@ class LocalRepositoryAdapterTest {
         }
 
         @Test
-        @DisplayName("deve chamar mapper.toDomain(null) e retornar null quando o id não existe")
+        @DisplayName("deve retornar null quando o id não existe")
         void deveRetornarNullQuandoIdNaoExiste() {
             String id = "id-inexistente";
 
             when(repository.findById(id)).thenReturn(Optional.empty());
-            when(mapper.toDomain(null)).thenReturn(null);
 
             Local resultado = localRepositoryAdapter.buscarPorIdLocal(id);
 
             assertNull(resultado);
             verify(repository).findById(id);
-            verify(mapper).toDomain(null);
+            verifyNoInteractions(mapper);
         }
     }
 

@@ -5,13 +5,16 @@ import analu.whereio.adapters.in.web.dto.request.LocalBuscarDtoRequest;
 import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
+import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.*;
+import analu.whereio.config.security.JwtUserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,15 +35,21 @@ public class LocalController {
     private final LocalConverter mapper;
 
     @PostMapping
-    ResponseEntity<String> cadastrarLocal(@Valid @RequestBody LocalDtoRequest localDtoRequest) {
-        LocalDtoResponse localDtoResponse = mapper.toResponse(cadastrarLocalUsecase.execute(mapper.toDomain(localDtoRequest)));
+    ResponseEntity<String> cadastrarLocal(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @Valid @RequestBody LocalDtoRequest localDtoRequest) {
+        Local local = mapper.toDomain(localDtoRequest);
+        local.setOwnerUserId(principal.getUserId());
+        LocalDtoResponse localDtoResponse = mapper.toResponse(cadastrarLocalUsecase.execute(local));
         log.info("Local cadastrado com sucesso. id={}", localDtoResponse.getId());
         return ResponseEntity.status(HttpStatus.OK).body(localDtoResponse.getId());
     }
 
     @DeleteMapping("/{id}")
-    ResponseEntity<Void> deletarLocal(@PathVariable String id) {
-        removerLocalUsecase.execute(id);
+    ResponseEntity<Void> deletarLocal(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @PathVariable String id) {
+        removerLocalUsecase.execute(id, principal.getUserId());
         log.info("Local deletado com sucesso. id={}", id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -53,10 +62,10 @@ public class LocalController {
     }
 
     @GetMapping("/all")
-    ResponseEntity<List<LocalDtoResponse>> buscarTodosLocais() {
+    ResponseEntity<List<LocalDtoResponse>> buscarTodosLocais(@AuthenticationPrincipal JwtUserPrincipal principal) {
         log.info("GET /api/local/all - buscarTodosLocais.");
         List<LocalDtoResponse> listaLocalDtoResponse = buscarTodosLocalUsecase
-                .execute()
+                .execute(principal.getUserId())
                 .stream()
                 .map(mapper::toResponse)
                 .toList();
@@ -65,8 +74,11 @@ public class LocalController {
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<LocalDtoResponse> atualizarLocal(@PathVariable String id, @Valid @RequestBody LocalDtoRequest localDtoRequest) {
-        atualizarLocalUsecase.execute(mapper.toDomain(localDtoRequest), id);
+    ResponseEntity<LocalDtoResponse> atualizarLocal(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @PathVariable String id,
+            @Valid @RequestBody LocalDtoRequest localDtoRequest) {
+        atualizarLocalUsecase.execute(mapper.toDomain(localDtoRequest), id, principal.getUserId());
         log.info("Local atualizado com sucesso. id={}", id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }

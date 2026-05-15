@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Appender JSON estruturado (logstash-logback-encoder) -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <includeCallerData>false</includeCallerData>
+            <customFields>{"app":"where-io","environment":"local"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- Appender legível para desenvolvimento -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [reqId=%X{requestId}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Profile prod: JSON estruturado -->
+    <springProfile name="prod">
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- Profile default (dev/local): legível -->
+    <springProfile name="!prod">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.mongodb.driver"  level="WARN"/>
+        <logger name="analu.whereio" level="DEBUG"/>
+    </springProfile>
+
+</configuration>

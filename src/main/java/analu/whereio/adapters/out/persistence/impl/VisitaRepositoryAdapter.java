@@ -40,22 +40,14 @@ public class VisitaRepositoryAdapter implements VisitaRepositoryPort {
     }
 
     @Override
-    public List<Visita> buscarVisitasPorIdLocal(String idLocal) {
-        log.debug("Buscando visitas por idLocal no MongoDB. idLocal={}", idLocal);
-        List<Visita> lista = repository
-                .findByIdLocal(idLocal)
-                .stream()
-                .map(mapper::toDomain)
-                .toList();
-        return lista;
+    public List<Visita> buscarVisitasPorIdLocal(String idLocal, String userId) {
+        log.debug("Buscando visitas por idLocal e usuário no MongoDB. idLocal={} userId={}", idLocal, userId);
+        return repository.findByIdLocalAndUserId(idLocal, userId).stream().map(mapper::toDomain).toList();
     }
 
     @Override
     public Visita buscarPorId(String id) {
         log.debug("Buscando visita por id no MongoDB. id={}", id);
-        Visita resultado = repository.findById(id)
-                .map(mapper::toDomain)
-                .orElse(null);
-        return resultado;
+        return repository.findById(id).map(mapper::toDomain).orElse(null);
     }
 }

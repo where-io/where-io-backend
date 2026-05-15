@@ -1,0 +1,18 @@
+# Configuração mínima para SpringBootTest (contextLoads).
+spring:
+  application:
+    name: where-io-test
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017}
+
+google:
+  map:
+    api:
+      key: test-google-map-api-key
+
+app:
+  jwt:
+    secret: test-jwt-secret-for-integration-tests-min-32-bytes!!
+    access-expiration-ms: 900000
+    refresh-expiration-ms: 604800000

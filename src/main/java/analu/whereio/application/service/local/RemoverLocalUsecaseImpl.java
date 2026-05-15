@@ -1,5 +1,6 @@
 package analu.whereio.application.service.local;
 
+import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.RemoverLocalUsecase;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
@@ -19,14 +20,20 @@ public class RemoverLocalUsecaseImpl implements RemoverLocalUsecase {
     private final LocalRepositoryPort localRepositoryPort;
 
     @Override
-    public void execute(String id) {
+    public void execute(String id, String ownerUserId) {
 
         MDC.put("operation", "removerLocal");
         try{
             log.info("Iniciando remocao de local. id={}", id);
+            Local local = localRepositoryPort.buscarPorIdLocal(id);
+            if (local == null || local.getOwnerUserId() == null || !local.getOwnerUserId().equals(ownerUserId)) {
+                throw new BusinessException("Local não encontrado", HttpStatus.NOT_FOUND);
+            }
             localRepositoryPort.removerLocalPorId(id);
             log.info("Local removido com sucesso. id={}", id);
 
+        } catch (BusinessException e) {
+            throw e;
         } catch (Exception e) {
             throw new BusinessException("Ocorreu um erro ao remover o local", HttpStatus.INTERNAL_SERVER_ERROR);
         } finally {

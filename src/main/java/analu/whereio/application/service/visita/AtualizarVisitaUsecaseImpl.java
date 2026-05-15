@@ -22,19 +22,21 @@ public class AtualizarVisitaUsecaseImpl implements AtualizarVisitaUsecase {
     private final VisitaRepositoryPort visitaRepositoryPort;
 
     @Override
-    public void execute(String idVisita, Visita visita) {
+    public void execute(String idVisita, Visita visita, String userId) {
 
         MDC.put("operation", "atualizarVisita");
         try {
             log.info("Iniciando atualizacao de visita. id={}", idVisita);
 
-            if(isNull(visitaRepositoryPort.buscarPorId(idVisita))){
+            Visita existente = visitaRepositoryPort.buscarPorId(idVisita);
+            if (isNull(existente) || existente.getUserId() == null || !existente.getUserId().equals(userId)) {
                 log.warn("Visita nao encontrada para atualizacao. id={}", idVisita);
                 throw new BusinessException("Visita não encontrada", HttpStatus.NOT_FOUND);
             }
 
             try{
                 visita.setId(idVisita);
+                visita.setUserId(existente.getUserId());
                 visitaRepositoryPort.atualizarVisita(visita);
 
             }catch (Exception e){

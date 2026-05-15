@@ -4,5 +4,5 @@ import analu.whereio.application.model.Visita;
 
 public interface AtualizarVisitaUsecase {
 
-    void execute(String idVisita, Visita visita);
+    void execute(String idVisita, Visita visita, String userId);
 }

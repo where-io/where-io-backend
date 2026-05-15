@@ -27,4 +27,7 @@ public class LocalDtoRequest {
     @Builder.Default
     private List<Categoria> tags = new ArrayList<>();
 
+    /** Opcional. Omitir para manter; string vazia remove a imagem. */
+    private String imagemUrl;
+
 }
