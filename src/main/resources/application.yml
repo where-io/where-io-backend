@@ -1,0 +1,40 @@
+# Defaults committed — override secrets via env or local application.properties (gitignored).
+spring:
+  application:
+    name: where-io
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 20MB
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+app:
+  jwt:
+    # HS256: use a long random secret in production (e.g. JWT_SECRET env)
+    secret: ${JWT_SECRET:dev-secret-change-me-use-env-JWT_SECRET-min-32-chars!!}
+    access-expiration-ms: ${JWT_ACCESS_MS:900000}
+    refresh-expiration-ms: ${JWT_REFRESH_MS:604800000}
+file:
+  # Use forward slashes no YAML no Windows; ou defina FILE_UPLOAD_DIR / file.upload-dir via env.
+  upload-dir: ${FILE_UPLOAD_DIR:C:/dev/projetos/where-io/backend/uploads}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name:my-app}
