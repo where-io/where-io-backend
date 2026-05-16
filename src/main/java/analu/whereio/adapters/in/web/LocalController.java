@@ -5,6 +5,7 @@ import analu.whereio.adapters.in.web.dto.request.LocalBuscarDtoRequest;
 import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
+import analu.whereio.adapters.in.web.dto.response.PlaceDetailsDtoResponse;
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.*;
 import analu.whereio.config.security.JwtUserPrincipal;
@@ -29,6 +30,7 @@ public class LocalController {
     private final CadastrarLocalUsecase cadastrarLocalUsecase;
     private final AtualizarLocalUsecase atualizarLocalUsecase;
     private final BuscarLocalUsecase buscarLocalUsecase;
+    private final BuscarDetalhesPlaceUsecase buscarDetalhesPlaceUsecase;
     private final BuscarTodosLocalUsecase buscarTodosLocalUsecase;
     private final RemoverLocalUsecase removerLocalUsecase;
 
@@ -54,11 +56,17 @@ public class LocalController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @GetMapping("/buscar-local")
+    @PostMapping("/buscar-local")
     ResponseEntity<LocalBuscarDtoResponse> buscarLocal(@Valid @RequestBody LocalBuscarDtoRequest localBuscarDtoRequest) {
         LocalBuscarDtoResponse localBuscarDtoResponse = mapper.toBuscarResponse(buscarLocalUsecase.execute(localBuscarDtoRequest.getInputText(), localBuscarDtoRequest.getSessionToken()));
-        log.info("Busca de local concluida.");
+        log.info("Busca de local concluída.");
         return ResponseEntity.status(HttpStatus.OK).body(localBuscarDtoResponse);
+    }
+
+    @GetMapping("/place-details/{placeId}")
+    ResponseEntity<PlaceDetailsDtoResponse> detalhesPlace(@PathVariable String placeId) {
+        PlaceDetailsDtoResponse body = mapper.toPlaceDetailsResponse(buscarDetalhesPlaceUsecase.execute(placeId));
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping("/all")

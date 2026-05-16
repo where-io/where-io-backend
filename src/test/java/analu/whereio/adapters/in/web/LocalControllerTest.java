@@ -10,6 +10,7 @@ import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Endereco;
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.AtualizarLocalUsecase;
+import analu.whereio.application.ports.in.local.BuscarDetalhesPlaceUsecase;
 import analu.whereio.application.ports.in.local.BuscarLocalUsecase;
 import analu.whereio.application.ports.in.local.BuscarTodosLocalUsecase;
 import analu.whereio.application.ports.in.local.CadastrarLocalUsecase;
@@ -45,6 +46,9 @@ class LocalControllerTest {
 
     @Mock
     private BuscarLocalUsecase buscarLocalUsecase;
+
+    @Mock
+    private BuscarDetalhesPlaceUsecase buscarDetalhesPlaceUsecase;
 
     @Mock
     private BuscarTodosLocalUsecase buscarTodosLocalUsecase;
@@ -143,7 +147,7 @@ class LocalControllerTest {
     }
 
     @Nested
-    @DisplayName("GET /api/local/buscar-local - buscarLocal")
+    @DisplayName("POST /api/local/buscar-local - buscarLocal")
     class BuscarLocal {
 
         @Test
