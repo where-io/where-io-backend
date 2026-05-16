@@ -93,6 +93,18 @@ class LoginUserUsecaseImplTest {
         }
 
         @Test
+        @DisplayName("deve registrar falha quando a senha é nula")
+        void deveRegistrarFalhaComSenhaNula() {
+            when(userAccountRepositoryPort.findByEmail("user@example.com"))
+                    .thenReturn(Optional.of(user));
+
+            assertThrows(BusinessException.class,
+                    () -> loginUserUsecaseImpl.execute("user@example.com", null));
+
+            verify(loginAttemptService).recordFailure("user@example.com");
+        }
+
+        @Test
         @DisplayName("não deve registrar falha quando o e-mail não existe")
         void naoDeveRegistrarFalhaComEmailInexistente() {
             when(userAccountRepositoryPort.findByEmail("naoexiste@example.com"))

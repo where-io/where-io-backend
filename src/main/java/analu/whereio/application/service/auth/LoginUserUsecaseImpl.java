@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class LoginUserUsecaseImpl implements LoginUserUsecase {
@@ -26,14 +29,16 @@ public class LoginUserUsecaseImpl implements LoginUserUsecase {
         try {
             String normalizedEmail = email.trim().toLowerCase();
 
-            loginAttemptService.getLockoutRemaining(normalizedEmail).ifPresent(remaining -> {
+            Optional<Duration> lockout = loginAttemptService.getLockoutRemaining(normalizedEmail);
+            if (lockout.isPresent()) {
+                Duration remaining = lockout.get();
                 long minutes = remaining.toMinutes();
                 long seconds = remaining.minusMinutes(minutes).toSeconds();
                 throw new BusinessException(
                         String.format("Conta bloqueada. Tente novamente em %d min e %d seg", minutes, seconds),
                         HttpStatus.TOO_MANY_REQUESTS
                 );
-            });
+            }
 
             UserAccount user = userAccountRepositoryPort.findByEmail(normalizedEmail)
                     .orElseThrow(() -> new BusinessException("Credenciais inválidas", HttpStatus.UNAUTHORIZED));
