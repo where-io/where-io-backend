@@ -9,6 +9,8 @@ import lombok.Setter;
 public class LocalBuscarDtoRequest {
 
     @NotBlank private String inputText;
-    @NotBlank private String sessionToken;
+
+    /** Opcional; usado para agrupar cobrança na sessão de autocomplete do Places. */
+    private String sessionToken;
 
 }
