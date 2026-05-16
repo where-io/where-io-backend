@@ -24,7 +24,7 @@ public class LoginAttemptService {
     public void recordFailure(String email) {
         attempts.compute(email, (key, record) -> {
             int newCount = (record == null ? 0 : record.count) + 1;
-            Instant lockedUntil = newCount >= MAX_ATTEMPTS
+            Instant lockedUntil = newCount == MAX_ATTEMPTS
                     ? Instant.now(clock).plus(LOCKOUT_DURATION)
                     : (record != null ? record.lockedUntil : null);
             return new AttemptRecord(newCount, lockedUntil);
@@ -42,7 +42,7 @@ public class LoginAttemptService {
         }
         Duration remaining = Duration.between(Instant.now(clock), record.lockedUntil);
         if (remaining.isNegative() || remaining.isZero()) {
-            attempts.remove(email);
+            attempts.remove(email, record);
             return Optional.empty();
         }
         return Optional.of(remaining);

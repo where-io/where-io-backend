@@ -64,13 +64,15 @@ class LoginAttemptServiceTest {
         }
 
         @Test
-        @DisplayName("deve manter bloqueio com mais tentativas além do limite")
+        @DisplayName("deve manter bloqueio com mais tentativas além do limite e não estender o prazo")
         void deveManterBloqueioAposLimite() {
             when(clock.instant()).thenReturn(T0);
 
             for (int i = 0; i < 5; i++) service.recordFailure(EMAIL);
 
-            assertTrue(service.getLockoutRemaining(EMAIL).isPresent());
+            Optional<Duration> remaining = service.getLockoutRemaining(EMAIL);
+            assertTrue(remaining.isPresent());
+            assertEquals(Duration.ofMinutes(10), remaining.get());
         }
     }
 
