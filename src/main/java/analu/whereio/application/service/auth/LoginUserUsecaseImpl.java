@@ -31,7 +31,7 @@ public class LoginUserUsecaseImpl implements LoginUserUsecase {
 
             Optional<Duration> lockout = loginAttemptService.getLockoutRemaining(normalizedEmail);
             if (lockout.isPresent()) {
-                Duration remaining = lockout.get();
+                Duration remaining = lockout.orElseThrow();
                 long minutes = remaining.toMinutes();
                 long seconds = remaining.minusMinutes(minutes).toSeconds();
                 throw new BusinessException(
