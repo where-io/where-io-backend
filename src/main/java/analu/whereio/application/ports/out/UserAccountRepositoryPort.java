@@ -2,6 +2,8 @@ package analu.whereio.application.ports.out;
 
 import analu.whereio.application.model.UserAccount;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserAccountRepositoryPort {
@@ -11,6 +13,8 @@ public interface UserAccountRepositoryPort {
     Optional<UserAccount> findByEmail(String email);
 
     Optional<UserAccount> findById(String id);
+
+    List<UserAccount> findAllById(Collection<String> ids);
 
     Optional<UserAccount> findByNome(String nomeUsuarioNormalizado);
 

@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface BuscarTodosLocalUsecase {
 
-    List<Local> execute(String ownerUserId);
+    List<Local> execute(String ownerUserId, int page, int size);
 }

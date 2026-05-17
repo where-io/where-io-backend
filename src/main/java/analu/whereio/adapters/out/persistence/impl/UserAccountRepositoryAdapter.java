@@ -8,6 +8,8 @@ import analu.whereio.application.ports.out.UserAccountRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -31,6 +33,13 @@ public class UserAccountRepositoryAdapter implements UserAccountRepositoryPort {
     @Override
     public Optional<UserAccount> findById(String id) {
         return repository.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<UserAccount> findAllById(Collection<String> ids) {
+        List<UserEntity> entities = new java.util.ArrayList<>();
+        repository.findAllById(ids).forEach(entities::add);
+        return entities.stream().map(mapper::toDomain).toList();
     }
 
     @Override

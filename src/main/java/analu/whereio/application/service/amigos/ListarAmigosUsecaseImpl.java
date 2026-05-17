@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,12 +33,7 @@ public class ListarAmigosUsecaseImpl implements ListarAmigosUsecase {
                     outrosIds.add(f.getRequesterUserId());
                 }
             }
-
-            List<UserAccount> resultado = new ArrayList<>();
-            for (String idAmigo : outrosIds) {
-                userAccountRepositoryPort.findById(idAmigo).ifPresent(resultado::add);
-            }
-            return resultado;
+            return userAccountRepositoryPort.findAllById(outrosIds);
         } finally {
             MDC.remove("operation");
         }

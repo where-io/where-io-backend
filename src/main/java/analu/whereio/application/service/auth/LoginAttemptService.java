@@ -1,5 +1,6 @@
 package analu.whereio.application.service.auth;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -22,12 +23,13 @@ public class LoginAttemptService {
     }
 
     public void recordFailure(String email) {
+        Instant now = Instant.now(clock);
         attempts.compute(email, (key, record) -> {
             int newCount = (record == null ? 0 : record.count) + 1;
             Instant lockedUntil = newCount == MAX_ATTEMPTS
-                    ? Instant.now(clock).plus(LOCKOUT_DURATION)
+                    ? now.plus(LOCKOUT_DURATION)
                     : (record != null ? record.lockedUntil : null);
-            return new AttemptRecord(newCount, lockedUntil);
+            return new AttemptRecord(newCount, lockedUntil, now);
         });
     }
 
@@ -48,5 +50,17 @@ public class LoginAttemptService {
         return Optional.of(remaining);
     }
 
-    record AttemptRecord(int count, Instant lockedUntil) {}
+    @Scheduled(fixedRate = 300_000)
+    void cleanupExpiredAttempts() {
+        Instant now = Instant.now(clock);
+        attempts.entrySet().removeIf(entry -> {
+            AttemptRecord record = entry.getValue();
+            if (record.lockedUntil() != null) {
+                return record.lockedUntil().isBefore(now);
+            }
+            return record.lastAttemptAt().plus(LOCKOUT_DURATION).isBefore(now);
+        });
+    }
+
+    record AttemptRecord(int count, Instant lockedUntil, Instant lastAttemptAt) {}
 }

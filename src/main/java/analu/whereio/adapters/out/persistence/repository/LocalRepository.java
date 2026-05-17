@@ -2,6 +2,8 @@ package analu.whereio.adapters.out.persistence.repository;
 
 import analu.whereio.adapters.out.persistence.entity.LocalEntity;
 import analu.whereio.application.model.Endereco;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,4 +19,6 @@ public interface LocalRepository extends MongoRepository<LocalEntity, String> {
     LocalEntity findByEndereco(Endereco endereco);
 
     List<LocalEntity> findAllByOwnerUserId(String ownerUserId);
+
+    Page<LocalEntity> findAllByOwnerUserId(String ownerUserId, Pageable pageable);
 }

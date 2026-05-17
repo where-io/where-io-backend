@@ -190,11 +190,11 @@ class LocalControllerTest {
             segundoResponse.setId("local-id-2");
             segundoResponse.setNome("Bar do João");
 
-            when(buscarTodosLocalUsecase.execute("user-1")).thenReturn(List.of(local, segundoLocal));
+            when(buscarTodosLocalUsecase.execute("user-1", 0, 20)).thenReturn(List.of(local, segundoLocal));
             when(mapper.toResponse(local)).thenReturn(localDtoResponse);
             when(mapper.toResponse(segundoLocal)).thenReturn(segundoResponse);
 
-            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais(PRINCIPAL);
+            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais(PRINCIPAL, 0, 20);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -204,7 +204,7 @@ class LocalControllerTest {
                     () -> assertEquals("local-id-1", resposta.getBody().get(0).getId()),
                     () -> assertEquals("local-id-2", resposta.getBody().get(1).getId())
             );
-            verify(buscarTodosLocalUsecase).execute("user-1");
+            verify(buscarTodosLocalUsecase).execute("user-1", 0, 20);
             verify(mapper).toResponse(local);
             verify(mapper).toResponse(segundoLocal);
         }
@@ -212,9 +212,9 @@ class LocalControllerTest {
         @Test
         @DisplayName("deve retornar 200 OK com lista vazia quando não há locais cadastrados")
         void deveRetornarListaVaziaQuandoNaoHaLocais() {
-            when(buscarTodosLocalUsecase.execute("user-1")).thenReturn(List.of());
+            when(buscarTodosLocalUsecase.execute("user-1", 0, 20)).thenReturn(List.of());
 
-            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais(PRINCIPAL);
+            ResponseEntity<List<LocalDtoResponse>> resposta = localController.buscarTodosLocais(PRINCIPAL, 0, 20);
 
             assertAll(
                     () -> assertNotNull(resposta),
@@ -222,7 +222,7 @@ class LocalControllerTest {
                     () -> assertNotNull(resposta.getBody()),
                     () -> assertTrue(resposta.getBody().isEmpty())
             );
-            verify(buscarTodosLocalUsecase).execute("user-1");
+            verify(buscarTodosLocalUsecase).execute("user-1", 0, 20);
             verifyNoMoreInteractions(mapper);
         }
     }

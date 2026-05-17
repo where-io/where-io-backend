@@ -16,6 +16,8 @@ public interface TagRepositoryPort {
 
     List<Tag> buscarTodasTags(String userId);
 
+    List<Tag> buscarPorIds(List<String> ids, String userId);
+
     void atualizarTag(Tag tag);
 
     void removerTagPorId(String id);

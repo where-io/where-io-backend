@@ -12,6 +12,8 @@ public interface LocalRepositoryPort {
 
     List<Local> buscarTodosLocalPorUsuario(String ownerUserId);
 
+    List<Local> buscarTodosLocalPorUsuarioPaginado(String ownerUserId, int page, int size);
+
     Local buscarPorIdLocal(String id);
 
     void atualizarLocal(Local local);

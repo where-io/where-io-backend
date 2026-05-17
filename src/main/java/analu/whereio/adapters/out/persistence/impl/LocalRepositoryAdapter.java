@@ -8,6 +8,7 @@ import analu.whereio.application.ports.out.LocalRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -57,6 +58,14 @@ public class LocalRepositoryAdapter implements LocalRepositoryPort {
     public void removerLocalPorId(String id) {
         repository.deleteById(id);
         log.debug("Local removido do MongoDB. id={}", id);
+    }
+
+    @Override
+    public List<Local> buscarTodosLocalPorUsuarioPaginado(String ownerUserId, int page, int size) {
+        log.debug("Buscando locais paginados por usuário no MongoDB. ownerUserId={}, page={}, size={}", ownerUserId, page, size);
+        return repository.findAllByOwnerUserId(ownerUserId, PageRequest.of(page, size))
+                .map(mapper::toDomain)
+                .toList();
     }
 
     @Override

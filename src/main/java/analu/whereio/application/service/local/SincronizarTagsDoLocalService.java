@@ -13,7 +13,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Converte {@link Local#getTags()} (payload) e referências em {@link Local#getIdTags()}
@@ -124,25 +127,38 @@ public class SincronizarTagsDoLocalService {
             local.setTags(new ArrayList<>());
             return;
         }
-        List<Categoria> vistas = new ArrayList<>();
-        Set<String> vistos = new LinkedHashSet<>();
-        for (String id : local.getIdTags()) {
-            if (id == null || id.isBlank() || vistos.contains(id)) {
-                continue;
-            }
-            vistos.add(id);
-            Tag tag = ownerUserId != null && !ownerUserId.isBlank()
-                    ? tagRepositoryPort.buscarPorIdTagDoUsuario(id.trim(), ownerUserId)
-                    : tagRepositoryPort.buscarPorIdTag(id.trim());
-            if (tag == null) {
-                continue;
-            }
-            Categoria c = new Categoria();
-            c.setId(tag.getId());
-            c.setNome(tag.getNome());
-            c.setCor(tag.getCor());
-            vistas.add(c);
+
+        List<String> idsUnicos = local.getIdTags().stream()
+                .filter(id -> id != null && !id.isBlank())
+                .map(String::trim)
+                .distinct()
+                .toList();
+
+        List<Tag> tags;
+        if (ownerUserId != null && !ownerUserId.isBlank()) {
+            tags = tagRepositoryPort.buscarPorIds(idsUnicos, ownerUserId);
+        } else {
+            tags = idsUnicos.stream()
+                    .map(tagRepositoryPort::buscarPorIdTag)
+                    .filter(Objects::nonNull)
+                    .toList();
         }
+
+        Map<String, Tag> tagPorId = tags.stream()
+                .collect(Collectors.toMap(Tag::getId, Function.identity()));
+
+        List<Categoria> vistas = idsUnicos.stream()
+                .map(tagPorId::get)
+                .filter(Objects::nonNull)
+                .map(tag -> {
+                    Categoria c = new Categoria();
+                    c.setId(tag.getId());
+                    c.setNome(tag.getNome());
+                    c.setCor(tag.getCor());
+                    return c;
+                })
+                .toList();
+
         local.setTags(vistas);
     }
 }

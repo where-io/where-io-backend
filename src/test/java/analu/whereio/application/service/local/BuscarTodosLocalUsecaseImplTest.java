@@ -85,11 +85,11 @@ class BuscarTodosLocalUsecaseImplTest {
         @Test
         @DisplayName("deve retornar todos os locais com suas visitas populadas quando existem locais cadastrados")
         void deveRetornarLocaisComVisitasPopuladasQuandoExistemLocais() {
-            when(localRepositoryPort.buscarTodosLocalPorUsuario(OWNER_USER_ID)).thenReturn(List.of(localUm, localDois));
+            when(localRepositoryPort.buscarTodosLocalPorUsuarioPaginado(OWNER_USER_ID, 0, 20)).thenReturn(List.of(localUm, localDois));
             when(visitaRepository.buscarVisitasPorIdLocal("id-local-1", OWNER_USER_ID)).thenReturn(List.of(visitaUm));
             when(visitaRepository.buscarVisitasPorIdLocal("id-local-2", OWNER_USER_ID)).thenReturn(List.of(visitaDois));
 
-            List<Local> resultado = buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID);
+            List<Local> resultado = buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID, 0, 20);
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -107,10 +107,10 @@ class BuscarTodosLocalUsecaseImplTest {
         @Test
         @DisplayName("deve chamar buscarVisitasPorIdLocal com o id de cada local")
         void deveChamarBuscarVisitasPorIdLocalComIdCadaLocal() {
-            when(localRepositoryPort.buscarTodosLocalPorUsuario(OWNER_USER_ID)).thenReturn(List.of(localUm, localDois));
+            when(localRepositoryPort.buscarTodosLocalPorUsuarioPaginado(OWNER_USER_ID, 0, 20)).thenReturn(List.of(localUm, localDois));
             when(visitaRepository.buscarVisitasPorIdLocal(anyString(), eq(OWNER_USER_ID))).thenReturn(Collections.emptyList());
 
-            buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID);
+            buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID, 0, 20);
 
             verify(visitaRepository).buscarVisitasPorIdLocal("id-local-1", OWNER_USER_ID);
             verify(visitaRepository).buscarVisitasPorIdLocal("id-local-2", OWNER_USER_ID);
@@ -125,9 +125,9 @@ class BuscarTodosLocalUsecaseImplTest {
         @Test
         @DisplayName("deve retornar lista vazia quando não existem locais cadastrados")
         void deveRetornarListaVaziaQuandoNaoExistemLocais() {
-            when(localRepositoryPort.buscarTodosLocalPorUsuario(OWNER_USER_ID)).thenReturn(Collections.emptyList());
+            when(localRepositoryPort.buscarTodosLocalPorUsuarioPaginado(OWNER_USER_ID, 0, 20)).thenReturn(Collections.emptyList());
 
-            List<Local> resultado = buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID);
+            List<Local> resultado = buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID, 0, 20);
 
             assertAll(
                     () -> assertNotNull(resultado),
@@ -144,12 +144,12 @@ class BuscarTodosLocalUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BusinessException com INTERNAL_SERVER_ERROR quando buscarTodosLocal lança RuntimeException")
         void deveLancarBusinessExceptionQuandoBuscarTodosLocalFalha() {
-            when(localRepositoryPort.buscarTodosLocalPorUsuario(OWNER_USER_ID))
+            when(localRepositoryPort.buscarTodosLocalPorUsuarioPaginado(OWNER_USER_ID, 0, 20))
                     .thenThrow(new RuntimeException("Falha no banco de dados"));
 
             BusinessException excecao = assertThrows(
                     BusinessException.class,
-                    () -> buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID)
+                    () -> buscarTodosLocalUsecaseImpl.execute(OWNER_USER_ID, 0, 20)
             );
 
             assertAll(

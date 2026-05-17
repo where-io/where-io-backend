@@ -70,10 +70,13 @@ public class LocalController {
     }
 
     @GetMapping("/all")
-    ResponseEntity<List<LocalDtoResponse>> buscarTodosLocais(@AuthenticationPrincipal JwtUserPrincipal principal) {
-        log.info("GET /api/local/all - buscarTodosLocais.");
+    ResponseEntity<List<LocalDtoResponse>> buscarTodosLocais(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("GET /api/local/all - buscarTodosLocais. page={}, size={}", page, size);
         List<LocalDtoResponse> listaLocalDtoResponse = buscarTodosLocalUsecase
-                .execute(principal.getUserId())
+                .execute(principal.getUserId(), page, size)
                 .stream()
                 .map(mapper::toResponse)
                 .toList();

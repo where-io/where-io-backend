@@ -57,4 +57,9 @@ public class TagRepositoryAdapter implements TagRepositoryPort {
         repository.deleteById(id);
         log.debug("Tag removida do MongoDB. id={}", id);
     }
+
+    @Override
+    public List<Tag> buscarPorIds(List<String> ids, String userId) {
+        return repository.findAllByIdInAndUserId(ids, userId).stream().map(mapper::toDomain).toList();
+    }
 }

@@ -144,8 +144,7 @@ class SincronizarTagsDoLocalServiceTest {
             t2.setId("b");
             t2.setNome("B");
             t2.setCor(null);
-            when(tagRepositoryPort.buscarPorIdTagDoUsuario("a", OWNER_USER_ID)).thenReturn(t1);
-            when(tagRepositoryPort.buscarPorIdTagDoUsuario("b", OWNER_USER_ID)).thenReturn(t2);
+            when(tagRepositoryPort.buscarPorIds(List.of("a", "b"), OWNER_USER_ID)).thenReturn(List.of(t1, t2));
 
             service.hidratarParaResposta(local);
 

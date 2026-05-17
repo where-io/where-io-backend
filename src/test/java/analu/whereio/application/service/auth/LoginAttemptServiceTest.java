@@ -113,9 +113,11 @@ class LoginAttemptServiceTest {
         @Test
         @DisplayName("deve retornar vazio quando lockout expirou")
         void deveRetornarVazioQuandoLockoutExpirou() {
-            // 3ª recordFailure chama clock.instant() uma vez → lockedUntil = T0 + 10min
+            // cada recordFailure chama clock.instant() uma vez → 3 chamadas para as falhas
             // getLockoutRemaining chama clock.instant() uma vez → T0+11min > lockedUntil → expirado
             when(clock.instant())
+                    .thenReturn(T0)
+                    .thenReturn(T0)
                     .thenReturn(T0)
                     .thenReturn(T0.plusSeconds(660));
 
