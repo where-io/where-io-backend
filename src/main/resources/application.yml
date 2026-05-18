@@ -21,6 +21,8 @@ app:
     secret: ${JWT_SECRET:dev-secret-change-me-use-env-JWT_SECRET-min-32-chars!!}
     access-expiration-ms: ${JWT_ACCESS_MS:900000}
     refresh-expiration-ms: ${JWT_REFRESH_MS:604800000}
+  internal:
+    api-key: ${INTERNAL_API_KEY:dev-internal-key-change-me}
 file:
   # Use forward slashes no YAML no Windows; ou defina FILE_UPLOAD_DIR / file.upload-dir via env.
   upload-dir: ${FILE_UPLOAD_DIR:C:/dev/projetos/where-io/backend/uploads}
