@@ -16,3 +16,5 @@ app:
     secret: test-jwt-secret-for-integration-tests-min-32-bytes!!
     access-expiration-ms: 900000
     refresh-expiration-ms: 604800000
+  internal:
+    api-key: test-internal-api-key
