@@ -3,6 +3,7 @@ package analu.whereio.application.service.local;
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.RemoverLocalUsecase;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
+import analu.whereio.application.ports.out.TagRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -11,6 +12,8 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class RemoverLocalUsecaseImpl implements RemoverLocalUsecase {
@@ -18,6 +21,7 @@ public class RemoverLocalUsecaseImpl implements RemoverLocalUsecase {
     private static final Logger log = LoggerFactory.getLogger(RemoverLocalUsecaseImpl.class);
 
     private final LocalRepositoryPort localRepositoryPort;
+    private final TagRepositoryPort tagRepositoryPort;
 
     @Override
     public void execute(String id, String ownerUserId) {
@@ -29,8 +33,17 @@ public class RemoverLocalUsecaseImpl implements RemoverLocalUsecase {
             if (local == null || local.getOwnerUserId() == null || !local.getOwnerUserId().equals(ownerUserId)) {
                 throw new BusinessException("Local não encontrado", HttpStatus.NOT_FOUND);
             }
+            List<String> idTags = local.getIdTags();
             localRepositoryPort.removerLocalPorId(id);
             log.info("Local removido com sucesso. id={}", id);
+            if (idTags != null) {
+                for (String idTag : idTags) {
+                    if (!localRepositoryPort.existsLocalComTag(idTag, ownerUserId)) {
+                        tagRepositoryPort.removerTagPorId(idTag);
+                        log.info("Tag removida por não ter mais locais associados. idTag={}", idTag);
+                    }
+                }
+            }
 
         } catch (BusinessException e) {
             throw e;

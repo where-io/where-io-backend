@@ -13,6 +13,7 @@ import analu.whereio.application.ports.in.amigos.ListarAmigosUsecase;
 import analu.whereio.application.ports.in.amigos.ListarConvitesEnviadosAmizadeUsecase;
 import analu.whereio.application.ports.in.amigos.ListarConvitesRecebidosAmizadeUsecase;
 import analu.whereio.application.ports.in.amigos.RecusarOuCancelarConviteAmizadeUsecase;
+import analu.whereio.application.ports.in.amigos.RemoverAmigoUsecase;
 import analu.whereio.config.security.JwtUserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class AmigosController {
     private final ListarConvitesEnviadosAmizadeUsecase listarConvitesEnviadosAmizadeUsecase;
     private final ListarAmigosUsecase listarAmigosUsecase;
     private final RecusarOuCancelarConviteAmizadeUsecase recusarOuCancelarConviteAmizadeUsecase;
+    private final RemoverAmigoUsecase removerAmigoUsecase;
     private final AmigosConverter converter;
 
     @PostMapping("/convites")
@@ -83,6 +85,14 @@ public class AmigosController {
                 .map(converter::toConviteEnviadoResponse)
                 .toList();
         return ResponseEntity.ok(lista);
+    }
+
+    @DeleteMapping("/{id}")
+    ResponseEntity<Void> removerAmigo(
+            @AuthenticationPrincipal JwtUserPrincipal principal,
+            @PathVariable String id) {
+        removerAmigoUsecase.execute(id, principal.getUserId());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

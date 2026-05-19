@@ -21,4 +21,6 @@ public interface LocalRepository extends MongoRepository<LocalEntity, String> {
     List<LocalEntity> findAllByOwnerUserId(String ownerUserId);
 
     Page<LocalEntity> findAllByOwnerUserId(String ownerUserId, Pageable pageable);
+
+    boolean existsByOwnerUserIdAndIdTagsContaining(String ownerUserId, String idTag);
 }

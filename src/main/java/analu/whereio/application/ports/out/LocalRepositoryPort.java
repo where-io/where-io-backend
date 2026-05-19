@@ -21,4 +21,6 @@ public interface LocalRepositoryPort {
     void removerLocalPorId(String id);
 
     Local buscarPorCep(String cep, String ownerUserId);
+
+    boolean existsLocalComTag(String idTag, String userId);
 }

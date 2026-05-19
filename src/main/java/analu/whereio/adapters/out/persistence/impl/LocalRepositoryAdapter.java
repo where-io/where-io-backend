@@ -73,4 +73,9 @@ public class LocalRepositoryAdapter implements LocalRepositoryPort {
         LocalEntity entity = repository.findByEndereco_CepAndOwnerUserId(cep, ownerUserId);
         return entity == null ? null : mapper.toDomain(entity);
     }
+
+    @Override
+    public boolean existsLocalComTag(String idTag, String userId) {
+        return repository.existsByOwnerUserIdAndIdTagsContaining(userId, idTag);
+    }
 }
