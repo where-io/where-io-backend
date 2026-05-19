@@ -17,23 +17,16 @@ public class RemoverAmigoUsecaseImpl implements RemoverAmigoUsecase {
     private final FriendshipRepositoryPort friendshipRepositoryPort;
 
     @Override
-    public void execute(String friendshipId, String currentUserId) {
+    public void execute(String amigoUserId, String currentUserId) {
         MDC.put("operation", "removerAmigo");
         try {
-            Friendship friendship = friendshipRepositoryPort.findById(friendshipId)
+            Friendship friendship = friendshipRepositoryPort.findAllBetweenUsers(currentUserId, amigoUserId)
+                    .stream()
+                    .filter(f -> f.getStatus() == FriendshipStatus.ACCEPTED)
+                    .findFirst()
                     .orElseThrow(() -> new BusinessException("Amizade não encontrada", HttpStatus.NOT_FOUND));
 
-            if (friendship.getStatus() != FriendshipStatus.ACCEPTED) {
-                throw new BusinessException("Somente amizades aceitas podem ser removidas", HttpStatus.BAD_REQUEST);
-            }
-
-            boolean participa = currentUserId.equals(friendship.getRequesterUserId())
-                    || currentUserId.equals(friendship.getAddresseeUserId());
-            if (!participa) {
-                throw new BusinessException("Você não faz parte desta amizade", HttpStatus.FORBIDDEN);
-            }
-
-            friendshipRepositoryPort.deleteById(friendshipId);
+            friendshipRepositoryPort.deleteById(friendship.getId());
         } finally {
             MDC.remove("operation");
         }
