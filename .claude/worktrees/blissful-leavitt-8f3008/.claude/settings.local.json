@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk '{if\\(NF\\) print \"  \" substr\\($0, 2\\)}')",
+      "Bash(./mvnw test *)",
+      "Bash(./mvnw clean *)"
+    ]
+  }
+}
