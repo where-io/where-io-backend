@@ -46,6 +46,7 @@ management:
         http.server.requests: true
 
 server:
+  forward-headers-strategy: native
   tomcat:
     mbeanregistry:
       enabled: true
