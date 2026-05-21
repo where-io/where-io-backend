@@ -44,10 +44,10 @@ public class CadastrarLocalUsecaseImpl implements CadastrarLocalUsecase {
                 throw new BusinessException("Local já foi cadastrado", HttpStatus.UNPROCESSABLE_CONTENT);
             }
 
-            if (!isNull(localRepositoryPort.buscarPorCep(local.getEndereco().getCep(), local.getOwnerUserId()))) {
-                log.warn("Tentativa de cadastro de local duplicado. nome={}", local.getNome());
-                throw new BusinessException("Local já foi cadastrado", HttpStatus.UNPROCESSABLE_CONTENT);
-            }
+//            if (!isNull(localRepositoryPort.buscarPorCep(local.getEndereco().getCep(), local.getOwnerUserId()))) {
+//                log.warn("Tentativa de cadastro de local duplicado. nome={}", local.getNome());
+//                throw new BusinessException("Local já foi cadastrado", HttpStatus.UNPROCESSABLE_CONTENT);
+//            }
 
             sincronizarTagsDoLocalService.aplicar(local);
 
