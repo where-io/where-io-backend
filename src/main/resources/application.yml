@@ -27,6 +27,16 @@ file:
   # Use forward slashes no YAML no Windows; ou defina FILE_UPLOAD_DIR / file.upload-dir via env.
   upload-dir: ${FILE_UPLOAD_DIR:C:/dev/projetos/where-io/backend/uploads}
 
+storage:
+  type: ${STORAGE_TYPE:local}
+  s3:
+    endpoint: ${AWS_S3_ENDPOINT:}
+    access-key: ${AWS_S3_ACCESS_KEY:}
+    secret-key: ${AWS_S3_SECRET_KEY:}
+    bucket: ${AWS_S3_BUCKET:}
+    region: ${AWS_S3_REGION:us-east-1}
+    presign-duration-minutes: ${AWS_S3_PRESIGN_MINUTES:60}
+
 management:
   endpoints:
     web:

@@ -2,8 +2,8 @@ package analu.whereio.application.service.local;
 
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.AdicionarFotoLocalUsecase;
+import analu.whereio.application.ports.out.FileStoragePort;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
-import analu.whereio.application.service.files.FileStorageService;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class AdicionarFotoLocalUsecaseImpl implements AdicionarFotoLocalUsecase 
 
     private static final Logger log = LoggerFactory.getLogger(AdicionarFotoLocalUsecaseImpl.class);
 
-    private final FileStorageService fileStorageService;
+    private final FileStoragePort fileStoragePort;
     private final LocalRepositoryPort localRepositoryPort;
 
     @Override
@@ -46,7 +46,7 @@ public class AdicionarFotoLocalUsecaseImpl implements AdicionarFotoLocalUsecase 
 
             String storedName;
             try {
-                storedName = fileStorageService.saveFile(file);
+                storedName = fileStoragePort.salvar(file);
             } catch (IOException e) {
                 log.warn("Falha ao gravar arquivo do local. idLocal={}", idLocal, e);
                 throw new BusinessException("Erro ao salvar arquivo", HttpStatus.INTERNAL_SERVER_ERROR);
