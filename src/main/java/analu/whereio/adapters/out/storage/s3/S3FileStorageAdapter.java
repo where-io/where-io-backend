@@ -9,13 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.UUID;
 
 @Component
@@ -24,7 +20,6 @@ import java.util.UUID;
 public class S3FileStorageAdapter implements FileStoragePort {
 
     private final S3Client s3Client;
-    private final S3Presigner s3Presigner;
     private final S3StorageProperties props;
 
     @Override
@@ -54,15 +49,13 @@ public class S3FileStorageAdapter implements FileStoragePort {
         );
     }
 
+    /**
+     * Retorna a URL pública do objeto: {endpoint}/{bucket}/{key}.
+     * Requer que o bucket tenha política de leitura pública.
+     */
     @Override
     public String gerarUrlAssinada(String key) {
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(props.getPresignDurationMinutes()))
-                .getObjectRequest(GetObjectRequest.builder()
-                        .bucket(props.getBucket())
-                        .key(key)
-                        .build())
-                .build();
-        return s3Presigner.presignGetObject(presignRequest).url().toString();
+        String base = props.getEndpoint().replaceAll("/+$", "");
+        return base + "/" + props.getBucket() + "/" + key;
     }
 }

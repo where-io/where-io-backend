@@ -16,5 +16,4 @@ public class S3StorageProperties {
     private String secretKey;
     private String bucket;
     private String region = "us-east-1";
-    private int presignDurationMinutes = 60;
 }

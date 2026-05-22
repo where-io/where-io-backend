@@ -18,7 +18,7 @@ public interface FileStoragePort {
 
     /**
      * Retorna URL de acesso ao arquivo.
-     * Local: /media/{key}  |  S3: URL pre-signed com expiração configurável.
+     * Local: /media/{key}  |  S3: URL pública {endpoint}/{bucket}/{key} (bucket deve ser público).
      */
     String gerarUrlAssinada(String key);
 }
