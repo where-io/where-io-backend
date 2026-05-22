@@ -8,6 +8,7 @@ import analu.whereio.application.ports.out.FileStoragePort;
 import analu.whereio.config.security.JwtUserPrincipal;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -32,6 +34,32 @@ public class FileController {
     private final AdicionarFotoLocalUsecase adicionarFotoLocalUsecase;
     private final ListarFotosPorIdLocalUsecase listarFotosPorIdLocalUsecase;
     private final RemoverFotoLocalUsecase removerFotoLocalUsecase;
+
+    /**
+     * Proxy de arquivo: busca o objeto no storage (S3 ou local) e faz stream ao cliente.
+     * Endpoint público — não requer JWT. A key é UUID-prefixada, portanto difícil de adivinhar.
+     */
+    @GetMapping("/{key:.+}")
+    public ResponseEntity<InputStreamResource> getFile(@PathVariable String key) {
+        if (key == null || key.isBlank() || key.contains("..")) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            InputStream stream = fileStoragePort.getObject(key);
+            String ext = key.contains(".") ? key.substring(key.lastIndexOf('.') + 1).toLowerCase() : "";
+            MediaType mediaType = switch (ext) {
+                case "png" -> MediaType.IMAGE_PNG;
+                case "webp" -> MediaType.parseMediaType("image/webp");
+                case "gif" -> MediaType.IMAGE_GIF;
+                default -> MediaType.IMAGE_JPEG;
+            };
+            return ResponseEntity.ok()
+                    .contentType(mediaType)
+                    .body(new InputStreamResource(stream));
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     /**
      * Upload opcionalmente vinculado a um local via {@code idLocal}.

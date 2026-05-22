@@ -9,9 +9,11 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 @Component
@@ -50,12 +52,19 @@ public class S3FileStorageAdapter implements FileStoragePort {
     }
 
     /**
-     * Retorna a URL pública do objeto: {endpoint}/{bucket}/{key}.
-     * Requer que o bucket tenha política de leitura pública.
+     * Retorna path relativo do proxy: /api/files/{key}.
+     * O endpoint GET /api/files/{key} busca o objeto no S3 e faz stream ao cliente.
      */
     @Override
     public String gerarUrlAssinada(String key) {
-        String base = props.getEndpoint().replaceAll("/+$", "");
-        return base + "/" + props.getBucket() + "/" + key;
+        return "/api/files/" + key;
+    }
+
+    @Override
+    public InputStream getObject(String key) {
+        return s3Client.getObject(GetObjectRequest.builder()
+                .bucket(props.getBucket())
+                .key(key)
+                .build());
     }
 }

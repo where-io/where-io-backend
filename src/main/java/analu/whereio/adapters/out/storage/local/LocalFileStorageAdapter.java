@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,5 +54,15 @@ public class LocalFileStorageAdapter implements FileStoragePort {
     @Override
     public String gerarUrlAssinada(String key) {
         return "/media/" + key;
+    }
+
+    @Override
+    public InputStream getObject(String key) throws IOException {
+        Path base = Paths.get(config.getUploadDir()).normalize().toAbsolutePath();
+        Path target = base.resolve(key).normalize();
+        if (!target.startsWith(base)) {
+            throw new IllegalArgumentException("invalid key");
+        }
+        return Files.newInputStream(target);
     }
 }
