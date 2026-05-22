@@ -30,11 +30,14 @@ public class S3FileStorageAdapter implements FileStoragePort {
     @Override
     public String salvar(MultipartFile file) throws IOException {
         String key = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String contentType = file.getContentType();
+        if (contentType == null || contentType.isBlank()) contentType = "image/jpeg";
+
         s3Client.putObject(
                 PutObjectRequest.builder()
                         .bucket(props.getBucket())
                         .key(key)
-                        .contentType(file.getContentType())
+                        .contentType(contentType)
                         .build(),
                 RequestBody.fromInputStream(file.getInputStream(), file.getSize())
         );
