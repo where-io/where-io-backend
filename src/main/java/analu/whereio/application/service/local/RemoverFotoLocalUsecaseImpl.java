@@ -2,8 +2,8 @@ package analu.whereio.application.service.local;
 
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.RemoverFotoLocalUsecase;
+import analu.whereio.application.ports.out.FileStoragePort;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
-import analu.whereio.application.service.files.FileStorageService;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ public class RemoverFotoLocalUsecaseImpl implements RemoverFotoLocalUsecase {
 
     private static final Logger log = LoggerFactory.getLogger(RemoverFotoLocalUsecaseImpl.class);
 
-    private final FileStorageService fileStorageService;
+    private final FileStoragePort fileStoragePort;
     private final LocalRepositoryPort localRepositoryPort;
 
     @Override
@@ -57,7 +57,7 @@ public class RemoverFotoLocalUsecaseImpl implements RemoverFotoLocalUsecase {
             localRepositoryPort.atualizarLocal(local);
 
             try {
-                fileStorageService.deleteStoredFile(fileName);
+                fileStoragePort.deletar(fileName);
             } catch (IllegalArgumentException ignored) {
                 throw new BusinessException("Nome de arquivo inválido", HttpStatus.BAD_REQUEST);
             } catch (IOException e) {

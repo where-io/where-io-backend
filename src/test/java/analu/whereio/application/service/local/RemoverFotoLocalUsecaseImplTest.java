@@ -1,8 +1,8 @@
 package analu.whereio.application.service.local;
 
 import analu.whereio.application.model.Local;
+import analu.whereio.application.ports.out.FileStoragePort;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
-import analu.whereio.application.service.files.FileStorageService;
 import analu.whereio.exceptions.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ class RemoverFotoLocalUsecaseImplTest {
     private static final String FILE = "uuid_pic.png";
 
     @Mock
-    private FileStorageService fileStorageService;
+    private FileStoragePort fileStoragePort;
 
     @Mock
     private LocalRepositoryPort localRepositoryPort;
@@ -62,7 +62,7 @@ class RemoverFotoLocalUsecaseImplTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> usecase.execute(LOCAL_ID, FILE, OWNER_ID));
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
-        verify(fileStorageService, never()).deleteStoredFile(any());
+        verify(fileStoragePort, never()).deletar(any());
     }
 
     @Test
@@ -72,20 +72,20 @@ class RemoverFotoLocalUsecaseImplTest {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> usecase.execute(LOCAL_ID, "nao-existe.png", OWNER_ID));
         assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
-        verify(fileStorageService, never()).deleteStoredFile(any());
+        verify(fileStoragePort, never()).deletar(any());
         verify(localRepositoryPort, never()).atualizarLocal(any());
     }
 
     @Test
     void removeListaEPersisteEApagaArquivo() throws IOException {
         when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local);
-        doNothing().when(fileStorageService).deleteStoredFile(FILE);
+        doNothing().when(fileStoragePort).deletar(FILE);
 
         assertDoesNotThrow(() -> usecase.execute(LOCAL_ID, FILE, OWNER_ID));
 
         ArgumentCaptor<Local> captor = ArgumentCaptor.forClass(Local.class);
         verify(localRepositoryPort).atualizarLocal(captor.capture());
         assertEquals(java.util.List.of("other.png"), captor.getValue().getFotos());
-        verify(fileStorageService).deleteStoredFile(FILE);
+        verify(fileStoragePort).deletar(FILE);
     }
 }

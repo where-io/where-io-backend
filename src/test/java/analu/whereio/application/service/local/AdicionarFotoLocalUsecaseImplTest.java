@@ -1,8 +1,8 @@
 package analu.whereio.application.service.local;
 
 import analu.whereio.application.model.Local;
+import analu.whereio.application.ports.out.FileStoragePort;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
-import analu.whereio.application.service.files.FileStorageService;
 import analu.whereio.exceptions.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +31,7 @@ class AdicionarFotoLocalUsecaseImplTest {
     private static final String LOCAL_ID = "local-1";
 
     @Mock
-    private FileStorageService fileStorageService;
+    private FileStoragePort fileStoragePort;
 
     @Mock
     private LocalRepositoryPort localRepositoryPort;
@@ -62,7 +62,7 @@ class AdicionarFotoLocalUsecaseImplTest {
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> usecase.execute(vazio, LOCAL_ID, OWNER_ID));
             assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
-            verify(fileStorageService, never()).saveFile(any());
+            verify(fileStoragePort, never()).salvar(any());
         }
 
         @Test
@@ -70,7 +70,7 @@ class AdicionarFotoLocalUsecaseImplTest {
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> usecase.execute(arquivoValido(), "  ", OWNER_ID));
             assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
-            verify(fileStorageService, never()).saveFile(any());
+            verify(fileStoragePort, never()).salvar(any());
         }
 
         @Test
@@ -80,7 +80,7 @@ class AdicionarFotoLocalUsecaseImplTest {
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> usecase.execute(arquivoValido(), LOCAL_ID, OWNER_ID));
             assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
-            verify(fileStorageService, never()).saveFile(any());
+            verify(fileStoragePort, never()).salvar(any());
         }
 
         @Test
@@ -91,7 +91,7 @@ class AdicionarFotoLocalUsecaseImplTest {
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> usecase.execute(arquivoValido(), LOCAL_ID, OWNER_ID));
             assertEquals(HttpStatus.FORBIDDEN, ex.getStatus());
-            verify(fileStorageService, never()).saveFile(any());
+            verify(fileStoragePort, never()).salvar(any());
         }
     }
 
@@ -101,7 +101,7 @@ class AdicionarFotoLocalUsecaseImplTest {
         @Test
         void fluxoCompleto() throws Exception {
             when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local);
-            when(fileStorageService.saveFile(any())).thenReturn("uuid_foto.jpg");
+            when(fileStoragePort.salvar(any())).thenReturn("uuid_foto.jpg");
 
             String nome = usecase.execute(arquivoValido(), LOCAL_ID, OWNER_ID);
 
@@ -118,7 +118,7 @@ class AdicionarFotoLocalUsecaseImplTest {
         void listaExistente() throws Exception {
             local.setFotos(new ArrayList<>(java.util.List.of("a.jpg")));
             when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local);
-            when(fileStorageService.saveFile(any())).thenReturn("b.jpg");
+            when(fileStoragePort.salvar(any())).thenReturn("b.jpg");
 
             usecase.execute(arquivoValido(), LOCAL_ID, OWNER_ID);
 
