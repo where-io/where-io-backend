@@ -16,8 +16,28 @@ import java.net.URI;
 @ConditionalOnProperty(name = "storage.type", havingValue = "s3")
 public class S3Config {
 
+    private void validateProps(S3StorageProperties props) {
+        if (props.getEndpoint() == null || props.getEndpoint().isBlank()) {
+            throw new IllegalStateException(
+                "storage.s3.endpoint (AWS_ENDPOINT_URL) is required when STORAGE_TYPE=s3");
+        }
+        if (props.getAccessKey() == null || props.getAccessKey().isBlank()) {
+            throw new IllegalStateException(
+                "storage.s3.access-key (AWS_ACCESS_KEY_ID) is required when STORAGE_TYPE=s3");
+        }
+        if (props.getSecretKey() == null || props.getSecretKey().isBlank()) {
+            throw new IllegalStateException(
+                "storage.s3.secret-key (AWS_SECRET_ACCESS_KEY) is required when STORAGE_TYPE=s3");
+        }
+        if (props.getBucket() == null || props.getBucket().isBlank()) {
+            throw new IllegalStateException(
+                "storage.s3.bucket (AWS_S3_BUCKET_NAME) is required when STORAGE_TYPE=s3");
+        }
+    }
+
     @Bean
     public S3Client s3Client(S3StorageProperties props) {
+        validateProps(props);
         return S3Client.builder()
                 .endpointOverride(URI.create(props.getEndpoint()))
                 .serviceConfiguration(S3Configuration.builder()
@@ -32,6 +52,7 @@ public class S3Config {
 
     @Bean
     public S3Presigner s3Presigner(S3StorageProperties props) {
+        validateProps(props);
         return S3Presigner.builder()
                 .endpointOverride(URI.create(props.getEndpoint()))
                 .serviceConfiguration(S3Configuration.builder()
