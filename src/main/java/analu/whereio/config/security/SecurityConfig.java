@@ -39,7 +39,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/media/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/files/**", "/files/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
