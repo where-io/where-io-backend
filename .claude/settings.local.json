@@ -6,7 +6,8 @@
       "Bash(./mvnw clean *)",
       "Bash(Get-ChildItem *)",
       "Bash(New-Item -ItemType Directory -Force \"C:\\\\Users\\\\Lusca\\\\.claude\\\\skills\\\\create-readme\")",
-      "Bash(Out-Null)"
+      "Bash(Out-Null)",
+      "Bash(dir C:\\\\dev\\\\projetos\\\\where-io *)"
     ]
   }
 }

@@ -3,6 +3,7 @@ package analu.whereio.application.ports.out;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface FileStoragePort {
 
@@ -18,7 +19,13 @@ public interface FileStoragePort {
 
     /**
      * Retorna URL de acesso ao arquivo.
-     * Local: /media/{key}  |  S3: URL pre-signed com expiração configurável.
+     * Local: /media/{key}  |  S3: /api/files/{key} (proxy via backend).
      */
     String gerarUrlAssinada(String key);
+
+    /**
+     * Abre stream de leitura do arquivo pelo key.
+     * Usado pelo endpoint proxy GET /api/files/{key}.
+     */
+    InputStream getObject(String key) throws IOException;
 }

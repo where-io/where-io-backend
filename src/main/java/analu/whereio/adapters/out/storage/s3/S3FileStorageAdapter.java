@@ -12,9 +12,10 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignGetObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -56,13 +57,22 @@ public class S3FileStorageAdapter implements FileStoragePort {
 
     @Override
     public String gerarUrlAssinada(String key) {
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(props.getPresignDurationMinutes()))
-                .getObjectRequest(GetObjectRequest.builder()
-                        .bucket(props.getBucket())
-                        .key(key)
-                        .build())
-                .build();
-        return s3Presigner.presignGetObject(presignRequest).url().toString();
+        return s3Presigner.presignGetObject(
+                PresignGetObjectRequest.builder()
+                        .signatureDuration(Duration.ofMinutes(props.getPresignDurationMinutes()))
+                        .getObjectRequest(GetObjectRequest.builder()
+                                .bucket(props.getBucket())
+                                .key(key)
+                                .build())
+                        .build()
+        ).url().toString();
+    }
+
+    @Override
+    public InputStream getObject(String key) {
+        return s3Client.getObject(GetObjectRequest.builder()
+                .bucket(props.getBucket())
+                .key(key)
+                .build());
     }
 }
