@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +58,7 @@ public class S3FileStorageAdapter implements FileStoragePort {
     @Override
     public String gerarUrlAssinada(String key) {
         return s3Presigner.presignGetObject(
-                PresignGetObjectRequest.builder()
+                GetObjectPresignRequest.builder()
                         .signatureDuration(Duration.ofMinutes(props.getPresignDurationMinutes()))
                         .getObjectRequest(GetObjectRequest.builder()
                                 .bucket(props.getBucket())
