@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,8 +91,8 @@ class AtualizarFotoPerfilUsecaseImplTest {
         }
 
         @Test
-        @DisplayName("deve deletar foto antiga antes de salvar nova")
-        void deveDeletarFotoAntigaAntesDeSalvarNova() throws Exception {
+        @DisplayName("deve salvar nova foto antes de deletar a antiga")
+        void deveSalvarNovaFotoAntesDeDeletarAntiga() throws Exception {
             UserAccount conta = conta(USER_ID, "foto_antiga.jpg");
             when(userAccountRepositoryPort.findById(USER_ID)).thenReturn(Optional.of(conta));
             when(fileStoragePort.salvar(any())).thenReturn("nova_foto.jpg");
@@ -99,8 +100,29 @@ class AtualizarFotoPerfilUsecaseImplTest {
 
             usecase.execute(arquivoValido(), USER_ID);
 
-            verify(fileStoragePort).deletar("foto_antiga.jpg");
-            verify(fileStoragePort).salvar(any());
+            var inOrder = inOrder(fileStoragePort);
+            inOrder.verify(fileStoragePort).salvar(any());
+            inOrder.verify(fileStoragePort).deletar("foto_antiga.jpg");
+        }
+    }
+
+    @Nested
+    @DisplayName("Tratamento de erros")
+    class TratamentoDeErros {
+
+        @Test
+        @DisplayName("salvarLancaIoException_deveLancar500")
+        void salvarLancaIoException_deveLancar500() throws Exception {
+            UserAccount conta = conta(USER_ID, null);
+            when(userAccountRepositoryPort.findById(USER_ID)).thenReturn(Optional.of(conta));
+            when(fileStoragePort.salvar(any())).thenThrow(new IOException("fail"));
+
+            BusinessException ex = assertThrows(BusinessException.class,
+                    () -> usecase.execute(arquivoValido(), USER_ID));
+
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, ex.getStatus());
+            verify(userAccountRepositoryPort, never()).save(any());
+            verify(fileStoragePort, never()).deletar(any());
         }
     }
 
