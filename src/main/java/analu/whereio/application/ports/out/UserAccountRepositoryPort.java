@@ -16,7 +16,11 @@ public interface UserAccountRepositoryPort {
 
     List<UserAccount> findAllById(Collection<String> ids);
 
-    Optional<UserAccount> findByNome(String nomeUsuarioNormalizado);
+    Optional<UserAccount> findByNomeUsuario(String nomeUsuario);
 
     boolean existsByEmail(String email);
+
+    boolean existsByNomeUsuario(String nomeUsuario);
+
+    List<UserAccount> buscarPorPrefixoNomeUsuario(String prefix, int limit);
 }
