@@ -13,9 +13,13 @@ Permitir que o usuário faça login com email **ou** nomeUsuario, sem precisar i
 
 ## Abordagem
 
-Campo único `identifier`. Backend detecta o tipo pela presença de `@`:
-- Contém `@` → trata como email → `findByEmail`
-- Não contém `@` → trata como nomeUsuario → `findByNomeUsuario`
+Campo único `identifier`. Backend detecta o tipo pelo prefixo `@` (estilo Twitter):
+- Começa com `@` → nomeUsuario (remove `@`, normaliza, busca por `findByNomeUsuario`)
+- Não começa com `@` → email (normaliza lowercase, busca por `findByEmail`)
+
+Exemplos:
+- `@usuario_teste` → lookup por `usuario_teste`
+- `joao@email.com` → lookup por email
 
 ---
 
@@ -51,13 +55,13 @@ Lógica de detecção:
 String normalized;
 UserAccount user;
 
-if (identifier.contains("@")) {
-    normalized = identifier.trim().toLowerCase(Locale.ROOT);
-    user = userAccountRepositoryPort.findByEmail(normalized)
+if (identifier.startsWith("@")) {
+    normalized = NomeUsuarioNormalizer.sanitizePreferencia(identifier.substring(1));
+    user = userAccountRepositoryPort.findByNomeUsuario(normalized)
         .orElseThrow(() -> new BusinessException("Credenciais inválidas", HttpStatus.UNAUTHORIZED));
 } else {
-    normalized = NomeUsuarioNormalizer.sanitizePreferencia(identifier);
-    user = userAccountRepositoryPort.findByNomeUsuario(normalized)
+    normalized = identifier.trim().toLowerCase(Locale.ROOT);
+    user = userAccountRepositoryPort.findByEmail(normalized)
         .orElseThrow(() -> new BusinessException("Credenciais inválidas", HttpStatus.UNAUTHORIZED));
 }
 ```
@@ -86,8 +90,9 @@ Nenhuma mudança na camada web além do nome do campo no DTO.
 ## Testes
 
 **`LoginUserUsecaseImplTest`** — cenários adicionais:
-- Login por nomeUsuario válido → retorna tokens
-- Login por nomeUsuario inexistente → 401
+- Login por `@nomeUsuario` válido → retorna tokens
+- Login por `@nomeUsuario` inexistente → 401
+- Login por `@nomeUsuario` com `@` + sanitização (ex: `@Usuario_Teste` → lookup `usuario_teste`)
 - Login por email continua funcionando (cenários existentes)
 
 ---
