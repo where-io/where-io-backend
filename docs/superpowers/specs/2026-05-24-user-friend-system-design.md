@@ -95,11 +95,15 @@ Novos ports em `application/ports/in/usuario/`:
 | `AtualizarFotoPerfilUsecase` | `execute(MultipartFile file, String userId)` → `String` | Salva arquivo, atualiza `fotoPerfil` key, retorna URL assinada |
 | `RemoverFotoPerfilUsecase` | `execute(String userId)` | Remove arquivo do storage e limpa campo `fotoPerfil` |
 
-Novo port de saída em `application/ports/out/`:
+Port de saída existente `UserAccountRepositoryPort` — novos métodos:
 
-| Interface | Método | Descrição |
-|-----------|--------|-----------|
-| `UserAccountRepositoryPort` | `findByNomeUsuario`, `existsByNomeUsuario`, `save`, `findById`, `buscarPorPrefixo` | Port de repositório para `UserAccount` |
+```java
+Optional<UserAccount> findByNomeUsuario(String nomeUsuario);   // substitui findByNome (bugfix)
+boolean existsByNomeUsuario(String nomeUsuario);
+List<UserAccount> buscarPorPrefixoNomeUsuario(String prefix, int limit);
+```
+
+> **Bug fix:** `findByNome` / `AppUserMongoRepository.findByNome` estão mal nomeados — Spring Data gera query no campo `nome` (display name), não `nomeUsuario`. Renomear para `findByNomeUsuario` em toda a cadeia.
 
 ---
 
@@ -192,8 +196,11 @@ Cada camada segue o padrão existente (`@ExtendWith(MockitoExtension.class)`, `@
 - `UserController`
 - `UsuarioBuscaResponse`, `UsuarioPerfilResponse`, `AtualizarNomeRequest`
 - `BuscarUsuariosPorPrefixoUsecase`, `ObterPerfilUsuarioUsecase`, `AtualizarNomeUsuarioUsecase`, `AtualizarFotoPerfilUsecase`, `RemoverFotoPerfilUsecase`
-- `UserAccountRepositoryPort` (port de saída)
 - `BuscarUsuariosPorPrefixoUsecaseImpl`, `ObterPerfilUsuarioUsecaseImpl`, `AtualizarNomeUsuarioUsecaseImpl`, `AtualizarFotoPerfilUsecaseImpl`, `RemoverFotoPerfilUsecaseImpl`
-- `UserAccountRepositoryAdapter`
 - `UserConverter` (DTO ↔ domain)
 - Testes correspondentes
+
+**Já existem (só alterar):**
+- `UserAccountRepositoryPort` — adicionar novos métodos, renomear `findByNome` → `findByNomeUsuario`
+- `UserAccountRepositoryAdapter` — implementar novos métodos, corrigir `findByNome`
+- `AppUserMongoRepository` — corrigir `findByNome` → `findByNomeUsuario`, adicionar métodos de busca
