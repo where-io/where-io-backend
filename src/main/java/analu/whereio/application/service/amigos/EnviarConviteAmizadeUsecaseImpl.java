@@ -6,6 +6,7 @@ import analu.whereio.application.model.UserAccount;
 import analu.whereio.application.ports.in.amigos.EnviarConviteAmizadeUsecase;
 import analu.whereio.application.ports.out.FriendshipRepositoryPort;
 import analu.whereio.application.ports.out.UserAccountRepositoryPort;
+import analu.whereio.application.util.NomeUsuarioNormalizer;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
@@ -26,16 +27,16 @@ public class EnviarConviteAmizadeUsecaseImpl implements EnviarConviteAmizadeUsec
         MDC.put("operation", "enviarConviteAmizade");
         try {
             String solicitante = requesterUserId != null ? requesterUserId.trim() : "";
-//            String nomeUsuarioNorm = NomeUsuarioNormalizer.sanitizePreferencia(nomeUsuarioDestinatario);
 
             if (solicitante.isBlank()) {
                 throw new BusinessException("Usuário solicitante inválido", HttpStatus.BAD_REQUEST);
             }
-            if (nomeUsuarioDestinatario.length() < 3) {
+            if (nomeUsuarioDestinatario == null || nomeUsuarioDestinatario.length() < 3) {
                 throw new BusinessException("Nome de usuário inválido", HttpStatus.BAD_REQUEST);
             }
 
-            UserAccount destinatarioConta = userAccountRepositoryPort.findByNome(nomeUsuarioDestinatario)
+            String nomeNormalizado = NomeUsuarioNormalizer.sanitizePreferencia(nomeUsuarioDestinatario);
+            UserAccount destinatarioConta = userAccountRepositoryPort.findByNomeUsuario(nomeNormalizado)
                     .orElseThrow(() -> new BusinessException(
                             "Nenhum usuário encontrado com este nome de usuário.", HttpStatus.NOT_FOUND));
 

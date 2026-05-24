@@ -24,8 +24,11 @@ public class UserEntity {
     private String passwordHash;
     private String nome;
 
-    @Indexed(unique = true, sparse = true)
+    @Indexed(unique = true)
     private String nomeUsuario;
+
+    private String fotoPerfil;
+
     private List<String> roles = new ArrayList<>(List.of("USER"));
     private Instant createdAt;
 }

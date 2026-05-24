@@ -10,5 +10,5 @@ public class AmigoPerfilResponse {
     private String id;
     private String nomeUsuario;
     private String nome;
-    private String email;
+    private String fotoPerfilUrl;
 }
