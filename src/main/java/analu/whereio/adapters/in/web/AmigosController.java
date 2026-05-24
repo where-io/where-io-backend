@@ -14,6 +14,7 @@ import analu.whereio.application.ports.in.amigos.ListarConvitesEnviadosAmizadeUs
 import analu.whereio.application.ports.in.amigos.ListarConvitesRecebidosAmizadeUsecase;
 import analu.whereio.application.ports.in.amigos.RecusarOuCancelarConviteAmizadeUsecase;
 import analu.whereio.application.ports.in.amigos.RemoverAmigoUsecase;
+import analu.whereio.application.ports.out.FileStoragePort;
 import analu.whereio.config.security.JwtUserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class AmigosController {
     private final RecusarOuCancelarConviteAmizadeUsecase recusarOuCancelarConviteAmizadeUsecase;
     private final RemoverAmigoUsecase removerAmigoUsecase;
     private final AmigosConverter converter;
+    private final FileStoragePort fileStoragePort;
 
     @PostMapping("/convites")
     ResponseEntity<EnviarConviteAmizadeResponse> enviarConvite(
@@ -98,7 +100,13 @@ public class AmigosController {
     @GetMapping
     ResponseEntity<List<AmigoPerfilResponse>> listarAmigos(@AuthenticationPrincipal JwtUserPrincipal principal) {
         List<AmigoPerfilResponse> lista = listarAmigosUsecase.execute(principal.getUserId()).stream()
-                .map(converter::toAmigoResponse)
+                .map(account -> {
+                    AmigoPerfilResponse resp = converter.toAmigoResponse(account);
+                    if (account.getFotoPerfil() != null) {
+                        resp.setFotoPerfilUrl(fileStoragePort.gerarUrlAssinada(account.getFotoPerfil()));
+                    }
+                    return resp;
+                })
                 .toList();
         return ResponseEntity.ok(lista);
     }

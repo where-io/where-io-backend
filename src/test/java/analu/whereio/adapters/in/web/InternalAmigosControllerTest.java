@@ -43,7 +43,6 @@ class InternalAmigosControllerTest {
         amigoResponse.setId("friend-1");
         amigoResponse.setNome("João");
         amigoResponse.setNomeUsuario("joao123");
-        amigoResponse.setEmail("joao@email.com");
     }
 
     @Nested

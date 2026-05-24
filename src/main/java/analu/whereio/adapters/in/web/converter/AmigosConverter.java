@@ -35,6 +35,6 @@ public interface AmigosConverter {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "nomeUsuario", target = "nomeUsuario")
     @Mapping(source = "nome", target = "nome")
-    @Mapping(source = "email", target = "email")
+    @Mapping(target = "fotoPerfilUrl", ignore = true)
     AmigoPerfilResponse toAmigoResponse(UserAccount account);
 }
