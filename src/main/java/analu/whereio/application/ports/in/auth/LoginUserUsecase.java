@@ -4,5 +4,5 @@ import analu.whereio.application.model.AuthTokens;
 
 public interface LoginUserUsecase {
 
-    AuthTokens execute(String email, String rawPassword);
+    AuthTokens execute(String identifier, String rawPassword);
 }

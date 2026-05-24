@@ -115,6 +115,18 @@ class LoginUserUsecaseImplTest {
 
             verify(loginAttemptService, never()).recordFailure(any());
         }
+
+        @Test
+        @DisplayName("não deve registrar falha quando o @nomeUsuario não existe")
+        void naoDeveRegistrarFalhaComNomeUsuarioInexistente() {
+            when(userAccountRepositoryPort.findByNomeUsuario("joao123"))
+                    .thenReturn(Optional.empty());
+
+            assertThrows(BusinessException.class,
+                    () -> loginUserUsecaseImpl.execute("@joao123", "qualquer-senha"));
+
+            verify(loginAttemptService, never()).recordFailure(any());
+        }
     }
 
     @Nested
@@ -122,8 +134,8 @@ class LoginUserUsecaseImplTest {
     class QuandoLoginBemSucedido {
 
         @Test
-        @DisplayName("deve registrar sucesso e retornar tokens")
-        void deveRegistrarSucessoERetornarTokens() {
+        @DisplayName("deve registrar sucesso e retornar tokens via email")
+        void deveRegistrarSucessoERetornarTokensViaEmail() {
             AuthTokens tokens = new AuthTokens("access-token", "refresh-token", 3600L);
             when(userAccountRepositoryPort.findByEmail("user@example.com"))
                     .thenReturn(Optional.of(user));
@@ -138,6 +150,41 @@ class LoginUserUsecaseImplTest {
             );
             verify(loginAttemptService).recordSuccess("user@example.com");
             verify(loginAttemptService, never()).recordFailure(any());
+        }
+
+        @Test
+        @DisplayName("deve registrar sucesso e retornar tokens via @nomeUsuario")
+        void deveRegistrarSucessoERetornarTokensViaNomeUsuario() {
+            user.setNomeUsuario("joao123");
+            AuthTokens tokens = new AuthTokens("access-token", "refresh-token", 3600L);
+            when(userAccountRepositoryPort.findByNomeUsuario("joao123"))
+                    .thenReturn(Optional.of(user));
+            when(passwordEncoder.matches("senha-correta", "hashed-password")).thenReturn(true);
+            when(authTokenIssuerService.issueForUser(user)).thenReturn(tokens);
+
+            AuthTokens result = loginUserUsecaseImpl.execute("@joao123", "senha-correta");
+
+            assertAll(
+                    () -> assertEquals("access-token", result.accessToken()),
+                    () -> assertEquals("refresh-token", result.refreshToken())
+            );
+            verify(loginAttemptService).recordSuccess("joao123");
+            verify(loginAttemptService, never()).recordFailure(any());
+        }
+
+        @Test
+        @DisplayName("deve normalizar @NomeUsuario maiúsculo para minúsculo")
+        void deveNormalizarNomeUsuarioMaiusculo() {
+            user.setNomeUsuario("joao123");
+            AuthTokens tokens = new AuthTokens("access-token", "refresh-token", 3600L);
+            when(userAccountRepositoryPort.findByNomeUsuario("joao123"))
+                    .thenReturn(Optional.of(user));
+            when(passwordEncoder.matches("senha-correta", "hashed-password")).thenReturn(true);
+            when(authTokenIssuerService.issueForUser(user)).thenReturn(tokens);
+
+            loginUserUsecaseImpl.execute("@Joao123", "senha-correta");
+
+            verify(userAccountRepositoryPort).findByNomeUsuario("joao123");
         }
     }
 }
