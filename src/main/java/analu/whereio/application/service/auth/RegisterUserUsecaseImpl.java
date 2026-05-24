@@ -35,11 +35,13 @@ public class RegisterUserUsecaseImpl implements RegisterUserUsecase {
                 throw new BusinessException("Senha deve ter pelo menos 8 caracteres", HttpStatus.BAD_REQUEST);
             }
 
+            String nomeUsuario = resolverNomeUsuario(nomeUsuarioRaw);
+
             UserAccount account = new UserAccount();
             account.setEmail(normalizedEmail);
             account.setEncodedPassword(passwordEncoder.encode(rawPassword));
             account.setNome(nome != null ? nome.trim() : "");
-            account.setNomeUsuario(resolverNomeUsuario(normalizedEmail, nomeUsuarioRaw));
+            account.setNomeUsuario(nomeUsuario);
             account.setCreatedAt(Instant.now());
 
             UserAccount saved = userAccountRepositoryPort.save(account);
@@ -49,38 +51,17 @@ public class RegisterUserUsecaseImpl implements RegisterUserUsecase {
         }
     }
 
-    private String resolverNomeUsuario(String normalizedEmail, String nomeUsuarioRaw) {
-        boolean informado = nomeUsuarioRaw != null && !nomeUsuarioRaw.isBlank();
-        if (informado) {
-            String pref = NomeUsuarioNormalizer.sanitizePreferencia(nomeUsuarioRaw);
-            if (pref.length() < 3) {
-                throw new BusinessException(
-                        "Nome de usuário inválido (use de 3 a 30 caracteres: letras, números, ponto, _ ou -)",
-                        HttpStatus.BAD_REQUEST);
-            }
-            if (userAccountRepositoryPort.findByNome(pref).isPresent()) {
-                throw new BusinessException("Nome de usuário já está em uso", HttpStatus.CONFLICT);
-            }
-            return pref;
+    private String resolverNomeUsuario(String nomeUsuarioRaw) {
+        if (nomeUsuarioRaw == null || nomeUsuarioRaw.isBlank()) {
+            throw new BusinessException("nomeUsuario é obrigatório", HttpStatus.BAD_REQUEST);
         }
-
-        String base = NomeUsuarioNormalizer.baseApartirDoEmail(normalizedEmail);
-        if (base.length() < 3) {
-            base = "user";
+        String sanitized = NomeUsuarioNormalizer.sanitizePreferencia(nomeUsuarioRaw);
+        if (sanitized.length() < 3) {
+            throw new BusinessException("Nome de usuário inválido", HttpStatus.BAD_REQUEST);
         }
-        return gerarNomeUsuarioUnico(base.length() > 30 ? base.substring(0, 30) : base);
-    }
-
-    private String gerarNomeUsuarioUnico(String truncatedBase) {
-        String candidate = truncatedBase;
-        int suffix = 0;
-        while (userAccountRepositoryPort.findByNome(candidate).isPresent()) {
-            suffix++;
-            String suf = String.valueOf(suffix);
-            int maxBaseLen = Math.max(1, 30 - suf.length());
-            String prefix = truncatedBase.length() > maxBaseLen ? truncatedBase.substring(0, maxBaseLen) : truncatedBase;
-            candidate = prefix + suf;
+        if (userAccountRepositoryPort.existsByNomeUsuario(sanitized)) {
+            throw new BusinessException("Nome de usuário já está em uso", HttpStatus.CONFLICT);
         }
-        return candidate;
+        return sanitized;
     }
 }
