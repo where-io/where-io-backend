@@ -26,16 +26,15 @@ public class EnviarConviteAmizadeUsecaseImpl implements EnviarConviteAmizadeUsec
         MDC.put("operation", "enviarConviteAmizade");
         try {
             String solicitante = requesterUserId != null ? requesterUserId.trim() : "";
-//            String nomeUsuarioNorm = NomeUsuarioNormalizer.sanitizePreferencia(nomeUsuarioDestinatario);
 
             if (solicitante.isBlank()) {
                 throw new BusinessException("Usuário solicitante inválido", HttpStatus.BAD_REQUEST);
             }
-            if (nomeUsuarioDestinatario.length() < 3) {
+            if (nomeUsuarioDestinatario == null || nomeUsuarioDestinatario.length() < 3) {
                 throw new BusinessException("Nome de usuário inválido", HttpStatus.BAD_REQUEST);
             }
 
-            UserAccount destinatarioConta = userAccountRepositoryPort.findByNome(nomeUsuarioDestinatario)
+            UserAccount destinatarioConta = userAccountRepositoryPort.findByNomeUsuario(nomeUsuarioDestinatario)
                     .orElseThrow(() -> new BusinessException(
                             "Nenhum usuário encontrado com este nome de usuário.", HttpStatus.NOT_FOUND));
 

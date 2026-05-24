@@ -2,6 +2,7 @@ package analu.whereio.adapters.in.web.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +21,8 @@ public class RegisterRequest {
 
     private String nome;
 
-    /** Opcional; se omitido, um nome de usuário único é gerado a partir do e-mail */
+    @NotBlank(message = "nomeUsuario é obrigatório")
+    @Pattern(regexp = "^[a-z0-9_]{3,20}$",
+             message = "nomeUsuario deve ter 3–20 caracteres: apenas letras minúsculas, números e _")
     private String nomeUsuario;
 }

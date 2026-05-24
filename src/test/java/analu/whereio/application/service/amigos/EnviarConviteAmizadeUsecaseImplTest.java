@@ -19,14 +19,10 @@ import org.springframework.http.HttpStatus;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("EnviarConviteAmizadeUsecaseImpl")
@@ -51,7 +47,7 @@ class EnviarConviteAmizadeUsecaseImplTest {
         @Test
         @DisplayName("deve lançar BAD_REQUEST ao convidar a si mesmo")
         void naoPodeConvidarSiMesmo() {
-            when(userAccountRepositoryPort.findByNome(eq("user-a")))
+            when(userAccountRepositoryPort.findByNomeUsuario(eq("user-a")))
                     .thenReturn(Optional.of(conta(USER_A, "user-a")));
 
             BusinessException ex = assertThrows(BusinessException.class,
@@ -61,13 +57,13 @@ class EnviarConviteAmizadeUsecaseImplTest {
                     () -> assertEquals("Não é possível convidar a si mesmo", ex.getMessage()),
                     () -> assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus())
             );
-            verify(userAccountRepositoryPort).findByNome("user-a");
+            verify(userAccountRepositoryPort).findByNomeUsuario("user-a");
         }
 
         @Test
         @DisplayName("deve lançar NOT_FOUND quando o destinatário não existe")
         void destinatarioDeveExistir() {
-            when(userAccountRepositoryPort.findByNome(eq("user-b"))).thenReturn(Optional.empty());
+            when(userAccountRepositoryPort.findByNomeUsuario(eq("user-b"))).thenReturn(Optional.empty());
 
             BusinessException ex = assertThrows(BusinessException.class,
                     () -> enviarConviteAmizadeUsecase.execute(USER_A, "user-b"));
@@ -82,7 +78,7 @@ class EnviarConviteAmizadeUsecaseImplTest {
         @Test
         @DisplayName("deve lançar CONFLICT quando já são amigos")
         void jaSaoAmigos() {
-            when(userAccountRepositoryPort.findByNome(eq("user-b")))
+            when(userAccountRepositoryPort.findByNomeUsuario(eq("user-b")))
                     .thenReturn(Optional.of(conta(USER_B, "user-b")));
 
             Friendship aceito = new Friendship();
@@ -99,7 +95,7 @@ class EnviarConviteAmizadeUsecaseImplTest {
         @Test
         @DisplayName("deve lançar CONFLICT quando já há convite pendente")
         void convitePendente() {
-            when(userAccountRepositoryPort.findByNome(eq("user-b")))
+            when(userAccountRepositoryPort.findByNomeUsuario(eq("user-b")))
                     .thenReturn(Optional.of(conta(USER_B, "user-b")));
 
             Friendship pendente = new Friendship();
@@ -120,13 +116,13 @@ class EnviarConviteAmizadeUsecaseImplTest {
         @Test
         @DisplayName("deve persistir convite PENDING")
         void persisteConvite() {
-            when(userAccountRepositoryPort.findByNome(eq("User-B")))
+            when(userAccountRepositoryPort.findByNomeUsuario(eq("user-b")))
                     .thenReturn(Optional.of(conta(USER_B, "user-b")));
             when(friendshipRepositoryPort.findAllBetweenUsers(USER_A, USER_B)).thenReturn(List.of());
             when(friendshipRepositoryPort.save(any(Friendship.class))).thenAnswer(inv -> inv.getArgument(0));
 
             ArgumentCaptor<Friendship> captor = ArgumentCaptor.forClass(Friendship.class);
-            Friendship resultado = enviarConviteAmizadeUsecase.execute(USER_A, "User-B");
+            Friendship resultado = enviarConviteAmizadeUsecase.execute(USER_A, "user-b");
 
             verify(friendshipRepositoryPort).save(captor.capture());
             assertAll(
@@ -138,11 +134,11 @@ class EnviarConviteAmizadeUsecaseImplTest {
         }
     }
 
-    private static UserAccount conta(String id, String nomeLookup) {
+    private static UserAccount conta(String id, String nomeUsuario) {
         UserAccount u = new UserAccount();
         u.setId(id);
-        u.setNome(nomeLookup);
-        u.setNomeUsuario(nomeLookup);
+        u.setNome(nomeUsuario);
+        u.setNomeUsuario(nomeUsuario);
         u.setEmail(id + "@t.test");
         return u;
     }
