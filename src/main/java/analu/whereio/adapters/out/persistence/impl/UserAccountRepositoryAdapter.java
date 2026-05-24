@@ -6,6 +6,7 @@ import analu.whereio.adapters.out.persistence.repository.AppUserMongoRepository;
 import analu.whereio.application.model.UserAccount;
 import analu.whereio.application.ports.out.UserAccountRepositoryPort;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -43,12 +44,25 @@ public class UserAccountRepositoryAdapter implements UserAccountRepositoryPort {
     }
 
     @Override
-    public Optional<UserAccount> findByNome(String nomeUsuarioNormalizado) {
-        return repository.findByNome(nomeUsuarioNormalizado).map(mapper::toDomain);
+    public Optional<UserAccount> findByNomeUsuario(String nomeUsuario) {
+        return repository.findByNomeUsuario(nomeUsuario).map(mapper::toDomain);
     }
 
     @Override
     public boolean existsByEmail(String email) {
         return repository.existsByEmailIgnoreCase(email);
+    }
+
+    @Override
+    public boolean existsByNomeUsuario(String nomeUsuario) {
+        return repository.existsByNomeUsuario(nomeUsuario);
+    }
+
+    @Override
+    public List<UserAccount> buscarPorPrefixoNomeUsuario(String prefix, int limit) {
+        return repository.findByNomeUsuarioStartingWithIgnoreCase(prefix, PageRequest.of(0, limit))
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
     }
 }
