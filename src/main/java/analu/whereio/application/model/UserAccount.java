@@ -17,6 +17,7 @@ public class UserAccount {
     private String nome;
     /** Identificador público único (minúsculas), usado para convites de amizade */
     private String nomeUsuario;
+    private String fotoPerfil;
     private List<String> roles = new ArrayList<>(List.of("USER"));
     private Instant createdAt;
 }
