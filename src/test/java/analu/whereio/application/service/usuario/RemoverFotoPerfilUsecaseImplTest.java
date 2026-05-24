@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -75,6 +76,21 @@ class RemoverFotoPerfilUsecaseImplTest {
                     () -> usecase.execute(USER_ID));
 
             assertEquals(HttpStatus.NOT_FOUND, ex.getStatus());
+        }
+
+        @Test
+        @DisplayName("deletarLancaIoException_deveContinuarELimparCampo")
+        void deletarLancaIoException_deveContinuarELimparCampo() throws Exception {
+            UserAccount conta = conta(USER_ID, "foto.jpg");
+            when(userAccountRepositoryPort.findById(USER_ID)).thenReturn(Optional.of(conta));
+            doThrow(new IOException("fail")).when(fileStoragePort).deletar(any());
+            when(userAccountRepositoryPort.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+            usecase.execute(USER_ID);
+
+            ArgumentCaptor<UserAccount> captor = ArgumentCaptor.forClass(UserAccount.class);
+            verify(userAccountRepositoryPort).save(captor.capture());
+            assertNull(captor.getValue().getFotoPerfil());
         }
     }
 

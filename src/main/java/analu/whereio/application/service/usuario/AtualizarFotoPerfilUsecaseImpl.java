@@ -36,20 +36,20 @@ public class AtualizarFotoPerfilUsecaseImpl implements AtualizarFotoPerfilUsecas
             UserAccount account = userAccountRepositoryPort.findById(userId)
                     .orElseThrow(() -> new BusinessException("Usuário não encontrado", HttpStatus.NOT_FOUND));
 
-            if (account.getFotoPerfil() != null) {
-                try {
-                    fileStoragePort.deletar(account.getFotoPerfil());
-                } catch (IOException e) {
-                    log.warn("Falha ao deletar foto antiga do perfil. userId={}", userId, e);
-                }
-            }
-
             String novaKey;
             try {
                 novaKey = fileStoragePort.salvar(file);
             } catch (IOException e) {
                 log.warn("Falha ao salvar foto de perfil. userId={}", userId, e);
                 throw new BusinessException("Erro ao salvar arquivo", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            if (account.getFotoPerfil() != null) {
+                try {
+                    fileStoragePort.deletar(account.getFotoPerfil());
+                } catch (IOException e) {
+                    log.warn("Falha ao deletar foto antiga do perfil. userId={}", userId, e);
+                }
             }
 
             account.setFotoPerfil(novaKey);
