@@ -46,6 +46,10 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
             local.setId(id);
             local.setOwnerUserId(existente.getOwnerUserId());
 
+            if (local.getVisitacao() == null) {
+                local.setVisitacao(existente.getVisitacao());
+            }
+
             if (local.getImagemUrl() == null) {
                 local.setImagemUrl(existente.getImagemUrl());
             } else if (local.getImagemUrl().isBlank()) {

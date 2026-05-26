@@ -19,6 +19,7 @@ public class Local {
     private List<String> idTags = new ArrayList<>();
     private List<Categoria> tags = new ArrayList<>();
     private List<Visita> visitas = new ArrayList<>();
+    private Boolean visitacao = true;
     /** URL absoluta da capa do local (ex.: {@code http://localhost:8080/media/uuid.jpg}). */
     private String imagemUrl;
     /** Nomes de arquivo em disco (galeria do local; servidos em {@code /media/{nome}}). */

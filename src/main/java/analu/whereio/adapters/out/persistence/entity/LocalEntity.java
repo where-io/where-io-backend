@@ -22,6 +22,7 @@ public class LocalEntity {
     private Endereco endereco;
     private Coordenadas coordenadas;
     private List<String> idTags = new ArrayList<>();
+    private Boolean visitacao = true;
     private String imagemUrl;
     private List<String> fotos = new ArrayList<>();
 }

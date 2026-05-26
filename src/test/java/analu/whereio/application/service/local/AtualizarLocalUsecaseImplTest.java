@@ -154,6 +154,22 @@ class AtualizarLocalUsecaseImplTest {
         }
 
         @Test
+        @DisplayName("deve preservar visitacao do local existente quando request não envia o campo (null)")
+        void devePreservarVisitacaoQuandoNullNoRequest() throws IOException, InterruptedException {
+            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
+            localExistente.setVisitacao(false);
+            localParaAtualizar.setVisitacao(null);
+
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
+                    .thenReturn(coordenadasRecord);
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+
+            assertEquals(false, localParaAtualizar.getVisitacao());
+        }
+
+        @Test
         @DisplayName("deve preservar fotos já salvas quando o payload traz lista vazia (PUT sem campo fotos)")
         void devePreservarFotosQuandoPayloadComListaVazia() throws IOException, InterruptedException {
             LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
