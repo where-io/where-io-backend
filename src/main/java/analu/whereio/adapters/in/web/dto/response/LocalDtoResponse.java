@@ -13,11 +13,12 @@ import java.util.List;
 @Getter
 @Setter
 
-@JsonPropertyOrder({"id", "nome", "endereco", "latitude", "longitude", "imagemUrl", "fotoUrls", "idTags", "tags", "visitas"})
+@JsonPropertyOrder({"id", "nome", "visitacao", "endereco", "latitude", "longitude", "imagemUrl", "fotoUrls", "idTags", "tags", "visitas"})
 public class LocalDtoResponse {
 
     private String id;
     private String nome;
+    private Boolean visitacao;
     private Endereco endereco;
     private Coordenadas coordenadas;
     private String imagemUrl;

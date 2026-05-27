@@ -115,6 +115,32 @@ class CadastrarVisitaUsecaseImplTest {
     }
 
     @Nested
+    @DisplayName("Quando o local não permite visitação")
+    class QuandoVisitacaoDesabilitada {
+
+        @Test
+        @DisplayName("deve lançar UNPROCESSABLE_ENTITY quando visitacao=false")
+        void deveLancarQuandoVisitacaoFalse() {
+            Local local = new Local();
+            local.setId("local-123");
+            local.setOwnerUserId(USER_ID);
+            local.setVisitacao(false);
+            when(localRepositoryPort.buscarPorIdLocal("local-123")).thenReturn(local);
+
+            BusinessException excecao = assertThrows(
+                    BusinessException.class,
+                    () -> cadastrarVisitaUsecase.execute(visita)
+            );
+
+            assertAll(
+                    () -> assertEquals("Este local não permite registro de visitas", excecao.getMessage()),
+                    () -> assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, excecao.getStatus())
+            );
+            verify(visitaRepositoryPort, never()).adicionarVisita(any());
+        }
+    }
+
+    @Nested
     @DisplayName("Quando o local existe")
     class QuandoLocalExiste {
 

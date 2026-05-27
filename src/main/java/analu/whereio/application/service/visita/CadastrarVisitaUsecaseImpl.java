@@ -40,6 +40,11 @@ public class CadastrarVisitaUsecaseImpl implements CadastrarVisitaUsecase {
                 throw new BusinessException("Não existe restaurante com esse id", HttpStatus.NOT_FOUND);
             }
 
+            if (!Boolean.TRUE.equals(local.getVisitacao())) {
+                log.warn("Tentativa de visita em local sem visitacao habilitada. idLocal={}", visita.getIdLocal());
+                throw new BusinessException("Este local não permite registro de visitas", HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+
             log.info("Local validado com sucesso. idLocal={}", visita.getIdLocal());
 
             try{
