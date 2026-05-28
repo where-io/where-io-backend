@@ -6,6 +6,7 @@ import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.AtualizarLocalUsecase;
 import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
+import analu.whereio.application.ports.out.VisitaRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
     private final LocalRepositoryPort localRepositoryPort;
     private final LatitudeLongitudeInterfacePort latitudeLongitudePort;
     private final SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
+    private final VisitaRepositoryPort visitaRepositoryPort;
 
     @Override
     public void execute(Local local, String id, String ownerUserId) {
@@ -48,6 +50,15 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
 
             if (local.getVisitacao() == null) {
                 local.setVisitacao(existente.getVisitacao());
+            }
+
+            if (Boolean.FALSE.equals(local.getVisitacao())) {
+                var visitas = visitaRepositoryPort.buscarVisitasPorIdLocal(id, ownerUserId);
+                if (visitas != null && !visitas.isEmpty()) {
+                    throw new BusinessException(
+                            "Local com visitas não pode ter a visitação desabilitada",
+                            HttpStatus.UNPROCESSABLE_ENTITY);
+                }
             }
 
             if (local.getImagemUrl() == null) {
