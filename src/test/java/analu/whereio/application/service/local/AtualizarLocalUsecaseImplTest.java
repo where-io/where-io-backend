@@ -1,6 +1,6 @@
 package analu.whereio.application.service.local;
 
-import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
+import analu.whereio.application.model.Categoria;
 import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Endereco;
 import analu.whereio.application.model.Local;
@@ -19,29 +19,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AtualizarLocalUsecaseImpl")
 class AtualizarLocalUsecaseImplTest {
 
-    @Mock
-    private LocalRepositoryPort localRepositoryPort;
-
-    @Mock
-    private LatitudeLongitudeInterfacePort latitudeLongitudePort;
-
-    @Mock
-    private VisitaRepositoryPort visitaRepositoryPort;
-
-    @Mock
-    private SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
+    @Mock private LocalRepositoryPort localRepositoryPort;
+    @Mock private LatitudeLongitudeInterfacePort latitudeLongitudePort;
+    @Mock private VisitaRepositoryPort visitaRepositoryPort;
+    @Mock private SincronizarTagsDoLocalService sincronizarTagsDoLocalService;
 
     @InjectMocks
     private AtualizarLocalUsecaseImpl atualizarLocalUsecaseImpl;
@@ -50,6 +42,7 @@ class AtualizarLocalUsecaseImplTest {
     private Local localParaAtualizar;
     private Endereco endereco;
     private static final String ID_VALIDO = "abc-123";
+    private static final String OWNER_ID = "owner-1";
 
     @BeforeEach
     void setUp() {
@@ -64,44 +57,53 @@ class AtualizarLocalUsecaseImplTest {
         localExistente = new Local();
         localExistente.setId(ID_VALIDO);
         localExistente.setNome("Restaurante Bom Sabor");
-        localExistente.setOwnerUserId("owner-1");
+        localExistente.setOwnerUserId(OWNER_ID);
 
         localParaAtualizar = new Local();
         localParaAtualizar.setNome("Restaurante Bom Sabor Atualizado");
-        localParaAtualizar.setEndereco(endereco);
 
         lenient().doNothing().when(sincronizarTagsDoLocalService).aplicar(any(Local.class));
     }
 
     @Nested
-    @DisplayName("Quando o ID não existe no repositório")
-    class QuandoIdNaoExiste {
+    @DisplayName("Quando o local não é encontrado ou owner não confere")
+    class QuandoLocalNaoEncontrado {
 
         @Test
-        @DisplayName("deve lançar BusinessException com status NOT_FOUND quando o ID não está cadastrado")
-        void deveLancarBusinessExceptionQuandoIdNaoExiste() {
+        @DisplayName("deve lançar NOT_FOUND quando o ID não está cadastrado")
+        void deveLancarNotFoundQuandoIdNaoExiste() {
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(null);
 
-            BusinessException excecao = assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
+            BusinessException ex = assertThrows(BusinessException.class,
+                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID));
 
             assertAll(
-                    () -> assertEquals("ID de local não existe", excecao.getMessage()),
-                    () -> assertEquals(HttpStatus.NOT_FOUND, excecao.getStatus())
+                    () -> assertEquals("Local nao encontrado para atualizacao", ex.getMessage()),
+                    () -> assertEquals(HttpStatus.NOT_FOUND, ex.getStatus())
             );
         }
 
         @Test
-        @DisplayName("deve não chamar atualizarLocal quando o ID não existe")
+        @DisplayName("deve lançar NOT_FOUND quando ownerUserId não confere")
+        void deveLancarNotFoundQuandoOwnerMismatch() {
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+
+            BusinessException ex = assertThrows(BusinessException.class,
+                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "outro-owner"));
+
+            assertAll(
+                    () -> assertEquals("Local nao encontrado para atualizacao", ex.getMessage()),
+                    () -> assertEquals(HttpStatus.NOT_FOUND, ex.getStatus())
+            );
+        }
+
+        @Test
+        @DisplayName("não deve chamar atualizarLocal quando local não encontrado")
         void naoDeveAtualizarLocalQuandoIdNaoExiste() {
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(null);
 
-            assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
+            assertThrows(BusinessException.class,
+                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID));
 
             verify(localRepositoryPort, never()).atualizarLocal(any());
         }
@@ -112,258 +114,167 @@ class AtualizarLocalUsecaseImplTest {
     class QuandoSucesso {
 
         @Test
-        @DisplayName("deve atualizar o local com coordenadas e id corretos quando todos os dados são válidos")
-        void deveAtualizarLocalComSucessoQuandoDadosValidos() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
-
+        @DisplayName("deve setar o id e chamar atualizarLocal quando dados válidos")
+        void deveSetarIdEChamarAtualizarLocal() {
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(coordenadasRecord);
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
-            assertAll(
-                    () -> assertEquals(ID_VALIDO, localParaAtualizar.getId()),
-                    () -> assertEquals("-23.5505", localParaAtualizar.getCoordenadas().getLatitude()),
-                    () -> assertEquals("-46.6333", localParaAtualizar.getCoordenadas().getLongitude())
-            );
-        }
-
-        @Test
-        @DisplayName("deve chamar atualizarLocal com o local populado quando todos os dados são válidos")
-        void deveChamarAtualizarLocalComLocalCorretoQuandoDadosValidos() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
-
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(coordenadasRecord);
-
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
-
-            verify(localRepositoryPort).atualizarLocal(eq(localParaAtualizar));
-        }
-
-        @Test
-        @DisplayName("deve chamar ConverterEnderecoParaCoordenadas com o toString do endereço")
-        void deveChamarConversaoComEnderecoFormatadoQuandoDadosValidos() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
-            String enderecoFormatado = endereco.toString();
-
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(enderecoFormatado))
-                    .thenReturn(coordenadasRecord);
-
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
-
-            verify(latitudeLongitudePort).ConverterEnderecoParaCoordenadas(enderecoFormatado);
+            assertEquals(ID_VALIDO, localParaAtualizar.getId());
+            verify(localRepositoryPort).atualizarLocal(localParaAtualizar);
         }
 
         @Test
         @DisplayName("deve sobrescrever ownerUserId do request com o do local existente para prevenir escalação de privilégio")
-        void devePreservarOwnerUserIdDoLocalExistente() throws Exception {
-            // TODO: scaffold — privilege escalation prevention: ownerUserId from request must be overwritten
-            // Setup: LatitudeLongitudeRecord + stub buscarPorIdLocal + stub latitudeLongitudePort
-            // localParaAtualizar.setOwnerUserId("atacante-id") before execute
-            // Assert: assertEquals("owner-1", localParaAtualizar.getOwnerUserId()) after execute
+        void devePreservarOwnerUserIdDoLocalExistente() {
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+            localParaAtualizar.setOwnerUserId("atacante-id");
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
+
+            assertEquals(OWNER_ID, localParaAtualizar.getOwnerUserId());
         }
 
         @Test
         @DisplayName("deve preservar visitacao do local existente quando request não envia o campo (null)")
-        void devePreservarVisitacaoQuandoNullNoRequest() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
+        void devePreservarVisitacaoQuandoNullNoRequest() {
             localExistente.setVisitacao(false);
             localParaAtualizar.setVisitacao(null);
-
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(coordenadasRecord);
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
             assertEquals(false, localParaAtualizar.getVisitacao());
         }
 
         @Test
-        @DisplayName("deve preservar fotos já salvas quando o payload traz lista vazia (PUT sem campo fotos)")
-        void devePreservarFotosQuandoPayloadComListaVazia() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
+        @DisplayName("deve preservar fotos já salvas quando o payload traz lista vazia")
+        void devePreservarFotosQuandoPayloadComListaVazia() {
             localExistente.setFotos(new ArrayList<>(List.of("a.png", "b.png")));
             localParaAtualizar.setFotos(new ArrayList<>());
-
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(coordenadasRecord);
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
             assertEquals(List.of("a.png", "b.png"), localParaAtualizar.getFotos());
         }
-    }
-
-    @Nested
-    @DisplayName("Quando o serviço de geocoding falha")
-    class QuandoGeocodingFalha {
 
         @Test
-        @DisplayName("deve lançar UNPROCESSABLE_ENTITY quando geocoding falha e não há coordenadas nem na base")
-        void deveLancarBusinessExceptionQuandoGeocodingLancaIOException() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenThrow(new IOException("Erro de conexão"));
-
-            BusinessException excecao = assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
-
-            assertAll(
-                    () -> assertEquals(
-                            "Não foi possível obter coordenadas para o endereço informado", excecao.getMessage()),
-                    () -> assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, excecao.getStatus())
-            );
-        }
-
-        @Test
-        @DisplayName("deve lançar UNPROCESSABLE_ENTITY quando geocoding lança InterruptedException")
-        void deveLancarBusinessExceptionQuandoGeocodingLancaInterruptedException() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenThrow(new InterruptedException("Thread interrompida"));
-
-            BusinessException excecao = assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
-
-            assertAll(
-                    () -> assertEquals(
-                            "Não foi possível obter coordenadas para o endereço informado", excecao.getMessage()),
-                    () -> assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, excecao.getStatus())
-            );
-        }
-
-        @Test
-        @DisplayName("deve lançar UNPROCESSABLE_ENTITY quando geocoding lança RuntimeException")
-        void deveLancarBusinessExceptionQuandoGeocodingLancaRuntimeException() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenThrow(new RuntimeException("Erro inesperado"));
-
-            BusinessException excecao = assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
-
-            assertAll(
-                    () -> assertEquals(
-                            "Não foi possível obter coordenadas para o endereço informado", excecao.getMessage()),
-                    () -> assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, excecao.getStatus())
-            );
-        }
-
-        @Test
-        @DisplayName("deve não chamar atualizarLocal quando geocoding falha")
-        void naoDeveAtualizarLocalQuandoGeocodingFalha() throws IOException, InterruptedException {
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenThrow(new IOException("Erro de conexão"));
-
-            assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
-
-            verify(localRepositoryPort, never()).atualizarLocal(any());
-        }
-
-        @Test
-        @DisplayName("quando geocoding falha mas o local já tinha coordenadas salvas, deve persistir com coordenadas antigas")
-        void devePersistirComCoordenadasSalvasQuandoGeocodingFalha() throws IOException, InterruptedException {
-            Coordenadas salvas = new Coordenadas();
-            salvas.setLatitude("-23.5");
-            salvas.setLongitude("-46.7");
-            localExistente.setCoordenadas(salvas);
-
-            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenThrow(new IOException("Erro de conexão"));
-
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
-
-            verify(localRepositoryPort).atualizarLocal(localParaAtualizar);
-            assertEquals("-23.5", localParaAtualizar.getCoordenadas().getLatitude());
-            assertEquals("-46.7", localParaAtualizar.getCoordenadas().getLongitude());
-        }
-    }
-
-    @Nested
-    @DisplayName("Quando endereco não muda")
-    class QuandoEnderecoNaoMuda {
-
-        @Test
-        @DisplayName("deve preservar coordenadas existentes sem chamar geocoding quando endereco é o mesmo")
-        void devePreservarCoordenadasQuandoEnderecoNaoMuda() throws IOException, InterruptedException {
-            Coordenadas salvas = new Coordenadas();
-            salvas.setLatitude("-23.5");
-            salvas.setLongitude("-46.7");
-            localExistente.setCoordenadas(salvas);
+        @DisplayName("deve preservar endereco existente quando update DTO não envia endereco (null)")
+        void devePreservarEnderecoQuandoNullNoRequest() {
             localExistente.setEndereco(endereco);
-
+            localParaAtualizar.setEndereco(null);
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
-            verify(latitudeLongitudePort, never()).ConverterEnderecoParaCoordenadas(anyString());
-            verify(localRepositoryPort).atualizarLocal(localParaAtualizar);
-            assertEquals("-23.5", localParaAtualizar.getCoordenadas().getLatitude());
-            assertEquals("-46.7", localParaAtualizar.getCoordenadas().getLongitude());
+            assertSame(endereco, localParaAtualizar.getEndereco());
         }
 
         @Test
-        @DisplayName("deve geocodificar quando endereco muda mesmo com coordenadas existentes")
-        void deveGeocodificarQuandoEnderecoMuda() throws IOException, InterruptedException {
+        @DisplayName("deve preservar coordenadas existentes quando update DTO não envia coordenadas (null)")
+        void devePreservarCoordenadasQuandoNullNoRequest() {
+            Coordenadas salvas = new Coordenadas();
+            salvas.setLatitude("-23.5");
+            salvas.setLongitude("-46.7");
+            localExistente.setCoordenadas(salvas);
+            localParaAtualizar.setCoordenadas(null);
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
+
+            assertSame(salvas, localParaAtualizar.getCoordenadas());
+        }
+
+        @Test
+        @DisplayName("deve usar coordenadas enviadas no request quando presentes (não sobrescreve com existente)")
+        void deveUsarCoordenadasDoRequestQuandoPresentes() {
             Coordenadas salvas = new Coordenadas();
             salvas.setLatitude("-23.5");
             salvas.setLongitude("-46.7");
             localExistente.setCoordenadas(salvas);
 
-            Endereco enderecoAntigo = new Endereco();
-            enderecoAntigo.setLogradouro("Rua Diferente");
-            enderecoAntigo.setCidade("Rio de Janeiro");
-            localExistente.setEndereco(enderecoAntigo);
+            Coordenadas novas = new Coordenadas();
+            novas.setLatitude("-22.9");
+            novas.setLongitude("-43.1");
+            localParaAtualizar.setCoordenadas(novas);
 
-            LatitudeLongitudeRecord novasCoordenadas = new LatitudeLongitudeRecord("-22.9", "-43.1");
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(novasCoordenadas);
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
-            verify(latitudeLongitudePort).ConverterEnderecoParaCoordenadas(anyString());
             assertEquals("-22.9", localParaAtualizar.getCoordenadas().getLatitude());
+            assertEquals("-43.1", localParaAtualizar.getCoordenadas().getLongitude());
+//            verify(latitudeLongitudePort, never()).ConverterEnderecoParaCoordenadas(any());
+        }
+
+        @Test
+        @DisplayName("deve preservar imagemUrl existente quando request não envia o campo (null)")
+        void devePreservarImagemUrlQuandoNullNoRequest() {
+            localExistente.setImagemUrl("https://storage/foto.png");
+            localParaAtualizar.setImagemUrl(null);
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
+
+            assertEquals("https://storage/foto.png", localParaAtualizar.getImagemUrl());
+        }
+
+        @Test
+        @DisplayName("deve remover imagemUrl quando request envia string vazia")
+        void deveRemoverImagemUrlQuandoStringVazia() {
+            localExistente.setImagemUrl("https://storage/foto.png");
+            localParaAtualizar.setImagemUrl("");
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
+
+            assertNull(localParaAtualizar.getImagemUrl());
         }
     }
 
     @Nested
-    @DisplayName("Quando coordenadas vêm na requisição")
-    class QuandoCoordenadasNaRequisicao {
+    @DisplayName("Comportamento de tags na atualização")
+    class QuandoTags {
 
         @Test
-        @DisplayName("não chama geocoding e persiste com as coordenadas enviadas")
-        void naoChamaGeocoding() throws IOException, InterruptedException {
-            Coordenadas req = new Coordenadas();
-            req.setLatitude("-23.515904499999998");
-            req.setLongitude("-46.7867245");
-            localParaAtualizar.setCoordenadas(req);
-
+        @DisplayName("deve preservar idTags existentes quando update DTO não envia tags")
+        void devePreservarIdTagsQuandoTagsNaoEnviadas() {
+            localExistente.setIdTags(new ArrayList<>(List.of("tag-1", "tag-2")));
+            localParaAtualizar.setIdTags(null);
+            localParaAtualizar.setTags(null);
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
-            verify(latitudeLongitudePort, never()).ConverterEnderecoParaCoordenadas(anyString());
-            verify(localRepositoryPort).atualizarLocal(localParaAtualizar);
-            assertEquals("-23.515904499999998", localParaAtualizar.getCoordenadas().getLatitude());
-            assertEquals("-46.7867245", localParaAtualizar.getCoordenadas().getLongitude());
+            assertEquals(List.of("tag-1", "tag-2"), localParaAtualizar.getIdTags());
+            verify(sincronizarTagsDoLocalService, never()).aplicar(any());
+        }
+
+        @Test
+        @DisplayName("deve chamar sincronizarTags quando idTags enviadas no request")
+        void deveSincronizarTagsQuandoIdTagsEnviadas() {
+            localParaAtualizar.setIdTags(new ArrayList<>(List.of("tag-1")));
+            localParaAtualizar.setTags(null);
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
+
+            verify(sincronizarTagsDoLocalService).aplicar(localParaAtualizar);
+        }
+
+        @Test
+        @DisplayName("deve chamar sincronizarTags quando tags (Categoria) enviadas no request")
+        void deveSincronizarTagsQuandoCategoriaEnviada() {
+            Categoria cat = new Categoria();
+            cat.setNome("Japonês");
+            localParaAtualizar.setIdTags(null);
+            localParaAtualizar.setTags(new ArrayList<>(List.of(cat)));
+            when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
+
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
+
+            verify(sincronizarTagsDoLocalService).aplicar(localParaAtualizar);
         }
     }
 
@@ -376,17 +287,15 @@ class AtualizarLocalUsecaseImplTest {
         void deveLancarBusinessExceptionQuandoVisitacaoFalseComVisitas() {
             localParaAtualizar.setVisitacao(false);
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(visitaRepositoryPort.buscarVisitasPorIdLocal(ID_VALIDO, "owner-1"))
+            when(visitaRepositoryPort.buscarVisitasPorIdLocal(ID_VALIDO, OWNER_ID))
                     .thenReturn(List.of(new Visita()));
 
-            BusinessException excecao = assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
+            BusinessException ex = assertThrows(BusinessException.class,
+                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID));
 
             assertAll(
-                    () -> assertEquals("Local com visitas não pode ter a visitação desabilitada", excecao.getMessage()),
-                    () -> assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, excecao.getStatus())
+                    () -> assertEquals("Local com visitas não pode ter a visitação desabilitada", ex.getMessage()),
+                    () -> assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, ex.getStatus())
             );
         }
 
@@ -395,29 +304,23 @@ class AtualizarLocalUsecaseImplTest {
         void naoDeveAtualizarLocalQuandoVisitacaoFalseComVisitas() {
             localParaAtualizar.setVisitacao(false);
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(visitaRepositoryPort.buscarVisitasPorIdLocal(ID_VALIDO, "owner-1"))
+            when(visitaRepositoryPort.buscarVisitasPorIdLocal(ID_VALIDO, OWNER_ID))
                     .thenReturn(List.of(new Visita()));
 
-            assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
+            assertThrows(BusinessException.class,
+                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID));
 
             verify(localRepositoryPort, never()).atualizarLocal(any());
         }
 
         @Test
         @DisplayName("deve permitir desabilitar visitacao quando local não tem visitas")
-        void devePermitirDesabilitarVisitacaoQuandoSemVisitas() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
+        void devePermitirDesabilitarVisitacaoQuandoSemVisitas() {
             localParaAtualizar.setVisitacao(false);
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(visitaRepositoryPort.buscarVisitasPorIdLocal(ID_VALIDO, "owner-1"))
-                    .thenReturn(List.of());
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(coordenadasRecord);
+            when(visitaRepositoryPort.buscarVisitasPorIdLocal(ID_VALIDO, OWNER_ID)).thenReturn(List.of());
 
-            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1");
+            atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID);
 
             verify(localRepositoryPort).atualizarLocal(localParaAtualizar);
             assertEquals(false, localParaAtualizar.getVisitacao());
@@ -429,24 +332,18 @@ class AtualizarLocalUsecaseImplTest {
     class QuandoPersistenciaFalha {
 
         @Test
-        @DisplayName("deve lançar BusinessException com INTERNAL_SERVER_ERROR quando atualizarLocal lança Exception")
-        void deveLancarBusinessExceptionQuandoPersistenciaFalha() throws IOException, InterruptedException {
-            LatitudeLongitudeRecord coordenadasRecord = new LatitudeLongitudeRecord("-23.5505", "-46.6333");
-
+        @DisplayName("deve lançar INTERNAL_SERVER_ERROR quando atualizarLocal lança Exception")
+        void deveLancarBusinessExceptionQuandoPersistenciaFalha() {
             when(localRepositoryPort.buscarPorIdLocal(ID_VALIDO)).thenReturn(localExistente);
-            when(latitudeLongitudePort.ConverterEnderecoParaCoordenadas(anyString()))
-                    .thenReturn(coordenadasRecord);
             doThrow(new RuntimeException("Falha no banco de dados"))
                     .when(localRepositoryPort).atualizarLocal(any());
 
-            BusinessException excecao = assertThrows(
-                    BusinessException.class,
-                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, "owner-1")
-            );
+            BusinessException ex = assertThrows(BusinessException.class,
+                    () -> atualizarLocalUsecaseImpl.execute(localParaAtualizar, ID_VALIDO, OWNER_ID));
 
             assertAll(
-                    () -> assertEquals("Ocorreu um erro ao atualizar o local", excecao.getMessage()),
-                    () -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, excecao.getStatus())
+                    () -> assertEquals("Ocorreu um erro ao atualizar o local", ex.getMessage()),
+                    () -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, ex.getStatus())
             );
         }
     }

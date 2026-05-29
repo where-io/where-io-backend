@@ -54,6 +54,7 @@ public class LocalController {
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @PathVariable String id) {
         log.info("Iniciando remocao de local. userId={} id={}", principal.getUserId(), id);
+        removerLocalUsecase.execute(id, principal.getUserId());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 

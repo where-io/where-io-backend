@@ -3,6 +3,7 @@ package analu.whereio.adapters.in.web;
 import analu.whereio.adapters.in.web.converter.LocalConverter;
 import analu.whereio.adapters.in.web.dto.request.local.LocalBuscarDtoRequest;
 import analu.whereio.adapters.in.web.dto.request.local.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalUpdateDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
 import analu.whereio.adapters.out.external.geocoding.record.AutoCompleteResponse;
@@ -38,37 +39,26 @@ class LocalControllerTest {
 
     private static final JwtUserPrincipal PRINCIPAL = JwtUserPrincipal.testPrincipal("user-1");
 
-    @Mock
-    private CadastrarLocalUsecase cadastrarLocalUsecase;
-
-    @Mock
-    private AtualizarLocalUsecase atualizarLocalUsecase;
-
-    @Mock
-    private BuscarLocalUsecase buscarLocalUsecase;
-
-    @Mock
-    private BuscarDetalhesPlaceUsecase buscarDetalhesPlaceUsecase;
-
-    @Mock
-    private BuscarTodosLocalUsecase buscarTodosLocalUsecase;
-
-    @Mock
-    private RemoverLocalUsecase removerLocalUsecase;
-
-    @Mock
-    private LocalConverter mapper;
+    @Mock private CadastrarLocalUsecase cadastrarLocalUsecase;
+    @Mock private AtualizarLocalUsecase atualizarLocalUsecase;
+    @Mock private BuscarLocalUsecase buscarLocalUsecase;
+    @Mock private BuscarDetalhesPlaceUsecase buscarDetalhesPlaceUsecase;
+    @Mock private BuscarTodosLocalUsecase buscarTodosLocalUsecase;
+    @Mock private RemoverLocalUsecase removerLocalUsecase;
+    @Mock private LocalConverter mapper;
 
     @InjectMocks
     private LocalController localController;
 
     private Local local;
-    private LocalDtoRequest localDtoRequest;
+    private LocalUpdateDtoRequest localUpdateDtoRequest;
     private LocalDtoResponse localDtoResponse;
+    private Endereco endereco;
+    private Coordenadas coordenadas;
 
     @BeforeEach
     void setUp() {
-        Endereco endereco = new Endereco();
+        endereco = new Endereco();
         endereco.setLogradouro("Rua das Flores");
         endereco.setBairro("Centro");
         endereco.setCidade("São Paulo");
@@ -76,7 +66,7 @@ class LocalControllerTest {
         endereco.setCep("01310-100");
         endereco.setPais("Brasil");
 
-        Coordenadas coordenadas = Coordenadas.builder()
+        coordenadas = Coordenadas.builder()
                 .latitude("-23.5505")
                 .longitude("-46.6333")
                 .build();
@@ -87,10 +77,8 @@ class LocalControllerTest {
         local.setEndereco(endereco);
         local.setCoordenadas(coordenadas);
 
-        localDtoRequest = LocalDtoRequest.builder()
+        localUpdateDtoRequest = LocalUpdateDtoRequest.builder()
                 .nome("Restaurante Bom Sabor")
-                .endereco(endereco)
-                .coordenadas(coordenadas)
                 .build();
 
         localDtoResponse = new LocalDtoResponse();
@@ -107,6 +95,12 @@ class LocalControllerTest {
         @Test
         @DisplayName("deve converter o request para domínio, executar o use case, mapear a resposta e retornar 200 OK com o id")
         void deveCadastrarLocalERetornarIdCom200() {
+            LocalDtoRequest localDtoRequest = LocalDtoRequest.builder()
+                    .nome("Restaurante Bom Sabor")
+                    .endereco(endereco)
+                    .coordenadas(coordenadas)
+                    .build();
+
             when(mapper.toDomain(localDtoRequest)).thenReturn(local);
             when(cadastrarLocalUsecase.execute(local)).thenReturn(local);
             when(mapper.toResponse(local)).thenReturn(localDtoResponse);
@@ -235,13 +229,6 @@ class LocalControllerTest {
         @DisplayName("deve buscar detalhes do lugar e retornar 200 OK com o response mapeado")
         void deveRetornarDetalhesDoPlaceComSucesso() {
             // TODO: scaffold — GET /api/local/place-details/{placeId} delegates to buscarDetalhesPlaceUsecase
-            // PlaceDetailsRecord record = new PlaceDetailsRecord(-23.5, -46.6, "Rua X", "Centro", "SP", "SP", "01310-100", "Brasil", "Rua X, Centro")
-            // PlaceDetailsDtoResponse response = new PlaceDetailsDtoResponse()
-            // when(buscarDetalhesPlaceUsecase.execute("place-123")).thenReturn(record)
-            // when(mapper.toPlaceDetailsResponse(record)).thenReturn(response)
-            // ResponseEntity<PlaceDetailsDtoResponse> result = localController.detalhesPlace("place-123")
-            // assertEquals(HttpStatus.OK, result.getStatusCode())
-            // assertSame(response, result.getBody())
         }
     }
 
@@ -254,16 +241,16 @@ class LocalControllerTest {
         void deveAtualizarLocalERetornar200SemBody() {
             String id = "local-id-1";
 
-            when(mapper.toDomain(localDtoRequest)).thenReturn(local);
+            when(mapper.toDomain(localUpdateDtoRequest)).thenReturn(local);
 
-            ResponseEntity<LocalDtoResponse> resposta = localController.atualizarLocal(PRINCIPAL, id, localDtoRequest);
+            ResponseEntity<Void> resposta = localController.atualizarLocal(PRINCIPAL, id, localUpdateDtoRequest);
 
             assertAll(
                     () -> assertNotNull(resposta),
                     () -> assertEquals(HttpStatus.OK, resposta.getStatusCode()),
                     () -> assertNull(resposta.getBody())
             );
-            verify(mapper).toDomain(localDtoRequest);
+            verify(mapper).toDomain(localUpdateDtoRequest);
             verify(atualizarLocalUsecase).execute(local, id, "user-1");
         }
     }
