@@ -96,6 +96,19 @@ class AdicionarFotoLocalUsecaseImplTest {
     }
 
     @Nested
+    class QuandoStorageFalha {
+
+        @Test
+        void deveLancarInternalServerErrorQuandoStorageLancaIOException() throws Exception {
+            // TODO: scaffold — IOException from fileStoragePort.salvar() wraps to INTERNAL_SERVER_ERROR
+            // when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local)
+            // when(fileStoragePort.salvar(any())).thenThrow(new IOException("disco cheio"))
+            // Assert: assertThrows(BusinessException.class, ...) with HttpStatus.INTERNAL_SERVER_ERROR
+            // Verify: verify(localRepositoryPort, never()).atualizarLocal(any())
+        }
+    }
+
+    @Nested
     class Sucesso {
 
         @Test

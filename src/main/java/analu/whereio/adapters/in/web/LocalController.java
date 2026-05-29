@@ -40,6 +40,7 @@ public class LocalController {
     ResponseEntity<String> cadastrarLocal(
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @Valid @RequestBody LocalDtoRequest localDtoRequest) {
+        log.info("Iniciando cadastro de local. userId={} nome={} endereco={}", principal.getUserId(), localDtoRequest.getNome(), localDtoRequest.getEndereco());
         Local local = mapper.toDomain(localDtoRequest);
         local.setOwnerUserId(principal.getUserId());
         LocalDtoResponse localDtoResponse = mapper.toResponse(cadastrarLocalUsecase.execute(local));
@@ -51,20 +52,20 @@ public class LocalController {
     ResponseEntity<Void> deletarLocal(
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @PathVariable String id) {
-        removerLocalUsecase.execute(id, principal.getUserId());
-        log.info("Local deletado com sucesso. id={}", id);
+        log.info("Iniciando remocao de local. userId={} id={}", principal.getUserId(), id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PostMapping("/buscar-local")
     ResponseEntity<LocalBuscarDtoResponse> buscarLocal(@Valid @RequestBody LocalBuscarDtoRequest localBuscarDtoRequest) {
+        log.info("Iniciando busca de local. inputText={}", localBuscarDtoRequest.getInputText());
         LocalBuscarDtoResponse localBuscarDtoResponse = mapper.toBuscarResponse(buscarLocalUsecase.execute(localBuscarDtoRequest.getInputText(), localBuscarDtoRequest.getSessionToken()));
-        log.info("Busca de local concluída.");
         return ResponseEntity.status(HttpStatus.OK).body(localBuscarDtoResponse);
     }
 
     @GetMapping("/place-details/{placeId}")
     ResponseEntity<PlaceDetailsDtoResponse> detalhesPlace(@PathVariable String placeId) {
+        log.info("Iniciando busca de detalhes do place. placeId={}", placeId);
         PlaceDetailsDtoResponse body = mapper.toPlaceDetailsResponse(buscarDetalhesPlaceUsecase.execute(placeId));
         return ResponseEntity.ok(body);
     }
@@ -74,7 +75,7 @@ public class LocalController {
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        log.info("GET /api/local/all - buscarTodosLocais. page={}, size={}", page, size);
+        log.info("Iniciando listagem de locais. userId={} page={} size={}", principal.getUserId(), page, size);
         List<LocalDtoResponse> listaLocalDtoResponse = buscarTodosLocalUsecase
                 .execute(principal.getUserId(), page, size)
                 .stream()
@@ -89,8 +90,8 @@ public class LocalController {
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @PathVariable String id,
             @Valid @RequestBody LocalDtoRequest localDtoRequest) {
+        log.info("Iniciando atualizacao de local. userId={} id={} nome={}", principal.getUserId(), id, localDtoRequest.getNome());
         atualizarLocalUsecase.execute(mapper.toDomain(localDtoRequest), id, principal.getUserId());
-        log.info("Local atualizado com sucesso. id={}", id);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

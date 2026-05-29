@@ -46,6 +46,24 @@ class SincronizarTagsDoLocalServiceTest {
     class Aplicar {
 
         @Test
+        @DisplayName("deve lançar IllegalStateException quando ownerUserId é nulo")
+        void deveLancarQuandoOwnerUserIdNulo() {
+            // TODO: scaffold — ownerUserId == null throws IllegalStateException
+            // local.setOwnerUserId(null)
+            // Assert: assertThrows(IllegalStateException.class, () -> service.aplicar(local))
+            // Verify: verifyNoInteractions(tagRepositoryPort)
+        }
+
+        @Test
+        @DisplayName("deve lançar IllegalStateException quando ownerUserId é em branco")
+        void deveLancarQuandoOwnerUserIdEmBranco() {
+            // TODO: scaffold — ownerUserId.isBlank() throws IllegalStateException
+            // local.setOwnerUserId("   ")
+            // Assert: assertThrows(IllegalStateException.class, () -> service.aplicar(local))
+            // Verify: verifyNoInteractions(tagRepositoryPort)
+        }
+
+        @Test
         @DisplayName("cria tags novas a partir de Categoria e preenche idTags")
         void criaTagsNovas() {
             Categoria cat = new Categoria();

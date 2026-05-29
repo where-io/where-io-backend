@@ -5,6 +5,8 @@ import analu.whereio.adapters.in.web.dto.request.LocalBuscarDtoRequest;
 import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
+import analu.whereio.adapters.in.web.dto.response.PlaceDetailsDtoResponse;
+import analu.whereio.adapters.out.external.geocoding.record.PlaceDetailsRecord;
 import analu.whereio.adapters.out.external.geocoding.record.AutoCompleteResponse;
 import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Endereco;
@@ -224,6 +226,24 @@ class LocalControllerTest {
             );
             verify(buscarTodosLocalUsecase).execute("user-1", 0, 20);
             verifyNoMoreInteractions(mapper);
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/local/place-details/{placeId} - detalhesPlace")
+    class DetalhesPlace {
+
+        @Test
+        @DisplayName("deve buscar detalhes do lugar e retornar 200 OK com o response mapeado")
+        void deveRetornarDetalhesDoPlaceComSucesso() {
+            // TODO: scaffold — GET /api/local/place-details/{placeId} delegates to buscarDetalhesPlaceUsecase
+            // PlaceDetailsRecord record = new PlaceDetailsRecord(-23.5, -46.6, "Rua X", "Centro", "SP", "SP", "01310-100", "Brasil", "Rua X, Centro")
+            // PlaceDetailsDtoResponse response = new PlaceDetailsDtoResponse()
+            // when(buscarDetalhesPlaceUsecase.execute("place-123")).thenReturn(record)
+            // when(mapper.toPlaceDetailsResponse(record)).thenReturn(response)
+            // ResponseEntity<PlaceDetailsDtoResponse> result = localController.detalhesPlace("place-123")
+            // assertEquals(HttpStatus.OK, result.getStatusCode())
+            // assertSame(response, result.getBody())
         }
     }
 

@@ -1,0 +1,496 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-24T00:00:00.000Z",
+  "__export_source": "generate-curl-skill",
+  "resources": [
+    {
+      "_type": "workspace",
+      "_id": "wrk_001",
+      "name": "where.io Backend",
+      "description": ""
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_001",
+      "parentId": "wrk_001",
+      "name": "Auth"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_002",
+      "parentId": "wrk_001",
+      "name": "Local"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_003",
+      "parentId": "wrk_001",
+      "name": "Local - Fotos"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_004",
+      "parentId": "wrk_001",
+      "name": "Visita"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_005",
+      "parentId": "wrk_001",
+      "name": "Tag"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_006",
+      "parentId": "wrk_001",
+      "name": "Amigos"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_007",
+      "parentId": "wrk_001",
+      "name": "Local - Tags"
+    },
+    {
+      "_type": "request_group",
+      "_id": "fld_008",
+      "parentId": "wrk_001",
+      "name": "Internal"
+    },
+    {
+      "_type": "request",
+      "_id": "req_001",
+      "parentId": "fld_001",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/auth/register",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"\",\n  \"password\": \"\",\n  \"nome\": \"\",\n  \"nomeUsuario\": \"\"\n}"
+      },
+      "afterResponseScript": "const json = await insomnia.response.json();\nconst token = json.access_token || json.token || json.accessToken || json.data?.token || json.data?.access_token;\nif (token) insomnia.environment.set('TOKEN', token);"
+    },
+    {
+      "_type": "request",
+      "_id": "req_002",
+      "parentId": "fld_001",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/auth/login",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"\",\n  \"password\": \"\"\n}"
+      },
+      "afterResponseScript": "const json = await insomnia.response.json();\nconst token = json.access_token || json.token || json.accessToken || json.data?.token || json.data?.access_token;\nif (token) insomnia.environment.set('TOKEN', token);"
+    },
+    {
+      "_type": "request",
+      "_id": "req_003",
+      "parentId": "fld_001",
+      "name": "Refresh Token",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/auth/refresh",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refreshToken\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_004",
+      "parentId": "fld_002",
+      "name": "Cadastrar Local",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/local",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"\",\n  \"endereco\": {\n    \"logradouro\": \"\",\n    \"bairro\": \"\",\n    \"cidade\": \"\",\n    \"estado\": \"\",\n    \"cep\": \"\",\n    \"pais\": \"\"\n  },\n  \"coordenadas\": {\n    \"latitude\": \"\",\n    \"longitude\": \"\"\n  },\n  \"idTags\": [],\n  \"tags\": [],\n  \"imagemUrl\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_005",
+      "parentId": "fld_002",
+      "name": "Deletar Local",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_006",
+      "parentId": "fld_002",
+      "name": "Buscar Local (Autocomplete)",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/local/buscar-local",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"inputText\": \"\",\n  \"sessionToken\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_007",
+      "parentId": "fld_002",
+      "name": "Detalhes do Place",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/local/place-details/{{PLACE_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_008",
+      "parentId": "fld_002",
+      "name": "Buscar Todos os Locais",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/local/all?page={{PAGE}}&size={{SIZE}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" },
+      "parameters": [
+        { "name": "page", "value": "0" },
+        { "name": "size", "value": "20" }
+      ]
+    },
+    {
+      "_type": "request",
+      "_id": "req_009",
+      "parentId": "fld_002",
+      "name": "Atualizar Local",
+      "method": "PUT",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"\",\n  \"endereco\": {\n    \"logradouro\": \"\",\n    \"bairro\": \"\",\n    \"cidade\": \"\",\n    \"estado\": \"\",\n    \"cep\": \"\",\n    \"pais\": \"\"\n  },\n  \"coordenadas\": {\n    \"latitude\": \"\",\n    \"longitude\": \"\"\n  },\n  \"idTags\": [],\n  \"tags\": [],\n  \"imagemUrl\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_010",
+      "parentId": "fld_003",
+      "name": "Upload Foto",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}/fotos",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "file", "value": "", "type": "file" }
+        ]
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_011",
+      "parentId": "fld_003",
+      "name": "Listar Fotos",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}/fotos",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_012",
+      "parentId": "fld_003",
+      "name": "Remover Foto",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}/fotos/{{FILE_NAME}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_013",
+      "parentId": "fld_004",
+      "name": "Buscar Visitas por Local",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/visita/{{ID_LOCAL}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_014",
+      "parentId": "fld_004",
+      "name": "Adicionar Visita",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/visita",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"dataVisita\": \"\",\n  \"avaliacao\": 0,\n  \"comentario\": \"\",\n  \"idLocal\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_015",
+      "parentId": "fld_004",
+      "name": "Remover Visita",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/visita/{{VISITA_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_016",
+      "parentId": "fld_004",
+      "name": "Atualizar Visita",
+      "method": "PUT",
+      "url": "{{BASE_URL}}/api/visita/{{VISITA_ID}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"dataVisita\": \"\",\n  \"avaliacao\": 0,\n  \"comentario\": \"\",\n  \"idLocal\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_017",
+      "parentId": "fld_005",
+      "name": "Cadastrar Tag",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/tag",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"\",\n  \"cor\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_018",
+      "parentId": "fld_005",
+      "name": "Buscar Todas as Tags",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/tag/all",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_019",
+      "parentId": "fld_005",
+      "name": "Buscar Tag por ID",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/tag/{{TAG_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_020",
+      "parentId": "fld_005",
+      "name": "Atualizar Tag",
+      "method": "PUT",
+      "url": "{{BASE_URL}}/api/tag/{{TAG_ID}}",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"\",\n  \"cor\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_021",
+      "parentId": "fld_005",
+      "name": "Remover Tag",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/tag/{{TAG_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_022",
+      "parentId": "fld_006",
+      "name": "Enviar Convite de Amizade",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/amigos/convites",
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" },
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nomeUsuarioDestino\": \"\"\n}"
+      }
+    },
+    {
+      "_type": "request",
+      "_id": "req_023",
+      "parentId": "fld_006",
+      "name": "Aceitar Convite de Amizade",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/amigos/convites/{{CONVITE_ID}}/aceitar",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_024",
+      "parentId": "fld_006",
+      "name": "Recusar ou Cancelar Convite",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/amigos/convites/{{CONVITE_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_025",
+      "parentId": "fld_006",
+      "name": "Listar Convites Recebidos",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/amigos/convites/recebidos",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_026",
+      "parentId": "fld_006",
+      "name": "Listar Convites Enviados",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/amigos/convites/enviados",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_027",
+      "parentId": "fld_006",
+      "name": "Remover Amigo",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/amigos/{{AMIGO_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_028",
+      "parentId": "fld_006",
+      "name": "Listar Amigos",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/amigos",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_029",
+      "parentId": "fld_007",
+      "name": "Associar Tag ao Local",
+      "method": "POST",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}/tag/{{TAG_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_030",
+      "parentId": "fld_007",
+      "name": "Remover Tag do Local",
+      "method": "DELETE",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}/tag/{{TAG_ID}}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_031",
+      "parentId": "fld_007",
+      "name": "Buscar Tags do Local",
+      "method": "GET",
+      "url": "{{BASE_URL}}/api/local/{{LOCAL_ID}}/tags",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{TOKEN}}" }
+      ],
+      "body": { "mimeType": "application/json" }
+    },
+    {
+      "_type": "request",
+      "_id": "req_032",
+      "parentId": "fld_008",
+      "name": "Listar Amigos por userId (Internal)",
+      "method": "GET",
+      "url": "{{BASE_URL}}/internal/amigos/{{USER_ID}}",
+      "headers": [],
+      "body": { "mimeType": "application/json" }
+    }
+  ]
+}

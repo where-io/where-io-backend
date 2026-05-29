@@ -48,6 +48,32 @@ class RemoverFotoLocalUsecaseImplTest {
     }
 
     @Test
+    void outroDono() throws Exception {
+        // TODO: scaffold — local exists but belongs to different user: FORBIDDEN
+        // local.setOwnerUserId("outro")
+        // when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local)
+        // Assert: BusinessException with HttpStatus.FORBIDDEN
+        // Verify: verify(fileStoragePort, never()).deletar(any())
+    }
+
+    @Test
+    void deveLancarInternalErrorQuandoStorageLancaIOException() throws Exception {
+        // TODO: scaffold — deletar() throws IOException → INTERNAL_SERVER_ERROR
+        // Note: DB record is already updated before deletar() is called
+        // when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local)
+        // doThrow(new IOException("disco")).when(fileStoragePort).deletar(FILE)
+        // Assert: BusinessException with HttpStatus.INTERNAL_SERVER_ERROR
+    }
+
+    @Test
+    void deveLancarBadRequestQuandoStorageLancaIllegalArgumentException() throws Exception {
+        // TODO: scaffold — deletar() throws IllegalArgumentException → BAD_REQUEST
+        // when(localRepositoryPort.buscarPorIdLocal(LOCAL_ID)).thenReturn(local)
+        // doThrow(new IllegalArgumentException("nome inválido")).when(fileStoragePort).deletar(FILE)
+        // Assert: BusinessException with HttpStatus.BAD_REQUEST
+    }
+
+    @Test
     void arquivoEmBranco() {
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> usecase.execute(LOCAL_ID, "  ", OWNER_ID));

@@ -85,6 +85,21 @@ class AssociarTagLocalUsecaseImplTest {
     }
 
     @Nested
+    @DisplayName("Quando o local não pertence ao usuário")
+    class QuandoLocalNaoPertenceAoUsuario {
+
+        @Test
+        @DisplayName("deve lançar BusinessException com NOT_FOUND quando local existe mas pertence a outro usuário")
+        void deveLancarNotFoundQuandoLocalPertenceAOutroUsuario() {
+            // TODO: scaffold — security boundary: local exists but ownerUserId != userId
+            // Setup: local.setOwnerUserId("outro-user"), when(localRepositoryPort.buscarPorIdLocal(ID_LOCAL)).thenReturn(local)
+            // Assert: assertThrows(BusinessException.class, ...) with HttpStatus.NOT_FOUND
+            // Verify: verify(tagRepositoryPort, never()).buscarPorIdTagDoUsuario(any(), any())
+            // Verify: verify(localRepositoryPort, never()).atualizarLocal(any())
+        }
+    }
+
+    @Nested
     @DisplayName("Quando a associação já existe")
     class QuandoAssociacaoJaExiste {
 

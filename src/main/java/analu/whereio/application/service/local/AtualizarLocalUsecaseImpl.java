@@ -2,6 +2,7 @@ package analu.whereio.application.service.local;
 
 import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
 import analu.whereio.application.model.Coordenadas;
+import analu.whereio.application.model.Endereco;
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.in.local.AtualizarLocalUsecase;
 import analu.whereio.application.ports.out.LatitudeLongitudeInterfacePort;
@@ -39,8 +40,9 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
             log.info("Iniciando atualizacao de local. id={}", id);
 
             Local existente = localRepositoryPort.buscarPorIdLocal(id);
+
             if (isNull(existente) || existente.getOwnerUserId() == null || !existente.getOwnerUserId().equals(ownerUserId)) {
-                BusinessException ex = new BusinessException("ID de local não existe", HttpStatus.NOT_FOUND);
+                BusinessException ex = new BusinessException("Local nao encontrado para atualizacao", HttpStatus.NOT_FOUND);
                 log.warn("Local nao encontrado para atualizacao. id={}", id);
                 throw ex;
             }
@@ -82,6 +84,9 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
 
             if (coordenadasValidas(local.getCoordenadas())) {
                 log.debug("Atualizacao de local usando coordenadas enviadas na requisicao. id={}", id);
+            } else if (coordenadasValidas(existente.getCoordenadas()) && !enderecoAlterado(local.getEndereco(), existente.getEndereco())) {
+                local.setCoordenadas(existente.getCoordenadas());
+                log.debug("Endereco sem alteracao; coordenadas existentes preservadas. id={}", id);
             } else {
                 try {
                     LatitudeLongitudeRecord record =
@@ -120,6 +125,12 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
         } finally {
             MDC.remove("operation");
         }
+    }
+
+    private static boolean enderecoAlterado(Endereco novo, Endereco existente) {
+        if (novo == null && existente == null) return false;
+        if (novo == null || existente == null) return true;
+        return !novo.toString().equals(existente.toString());
     }
 
     private static boolean coordenadasValidas(Coordenadas c) {

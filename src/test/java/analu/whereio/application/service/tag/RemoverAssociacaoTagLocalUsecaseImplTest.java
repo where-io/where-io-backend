@@ -2,6 +2,7 @@ package analu.whereio.application.service.tag;
 
 import analu.whereio.application.model.Local;
 import analu.whereio.application.ports.out.LocalRepositoryPort;
+import analu.whereio.application.ports.out.TagRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,6 +28,9 @@ class RemoverAssociacaoTagLocalUsecaseImplTest {
 
     @Mock
     private LocalRepositoryPort localRepositoryPort;
+
+    @Mock
+    private TagRepositoryPort tagRepositoryPort;
 
     @InjectMocks
     private RemoverAssociacaoTagLocalUsecaseImpl removerAssociacaoTagLocalUsecaseImpl;
@@ -57,6 +61,21 @@ class RemoverAssociacaoTagLocalUsecaseImplTest {
             assertTrue(localComTag.getIdTags().isEmpty());
             verify(localRepositoryPort).buscarPorIdLocal(ID_LOCAL);
             verify(localRepositoryPort).atualizarLocal(localComTag);
+        }
+    }
+
+    @Nested
+    @DisplayName("Quando o local não pertence ao usuário")
+    class QuandoLocalNaoPertenceAoUsuario {
+
+        @Test
+        @DisplayName("deve lançar NOT_FOUND quando local existe mas ownerUserId não corresponde")
+        void deveLancarNotFoundQuandoOwnerDiferente() {
+            // TODO: scaffold — security boundary: local exists but ownerUserId != userId
+            // Setup: localComTag.setOwnerUserId("outro-user")
+            // when(localRepositoryPort.buscarPorIdLocal(ID_LOCAL)).thenReturn(localComTag)
+            // Assert: assertThrows(BusinessException.class, ...) with HttpStatus.NOT_FOUND
+            // Verify: verify(localRepositoryPort, never()).atualizarLocal(any())
         }
     }
 

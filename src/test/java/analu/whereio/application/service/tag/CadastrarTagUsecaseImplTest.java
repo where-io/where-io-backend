@@ -99,6 +99,29 @@ class CadastrarTagUsecaseImplTest {
     }
 
     @Nested
+    @DisplayName("Quando o userId da tag é inválido")
+    class QuandoUserIdInvalido {
+
+        @Test
+        @DisplayName("deve lançar BusinessException com BAD_REQUEST quando userId é nulo")
+        void deveLancarBadRequestQuandoUserIdNulo() {
+            // TODO: scaffold — test that null userId throws BusinessException(BAD_REQUEST)
+            // Setup: tag.setUserId(null)
+            // Assert: assertThrows(BusinessException.class, ...) with HttpStatus.BAD_REQUEST
+            // Verify: verify(tagRepositoryPort, never()).buscarPorNomeTag(any(), any())
+        }
+
+        @Test
+        @DisplayName("deve lançar BusinessException com BAD_REQUEST quando userId é em branco")
+        void deveLancarBadRequestQuandoUserIdEmBranco() {
+            // TODO: scaffold — test that blank userId ("  ") throws BusinessException(BAD_REQUEST)
+            // Setup: tag.setUserId("  ")
+            // Assert: assertThrows(BusinessException.class, ...) with HttpStatus.BAD_REQUEST
+            // Verify: verify(tagRepositoryPort, never()).buscarPorNomeTag(any(), any())
+        }
+    }
+
+    @Nested
     @DisplayName("Quando a persistência falha ao cadastrar")
     class QuandoPersistenciaFalha {
 
