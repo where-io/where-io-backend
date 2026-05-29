@@ -31,4 +31,17 @@ public class LocalDtoRequest {
     /** Opcional. Omitir para manter; string vazia remove a imagem. */
     private String imagemUrl;
 
+
+    @Override
+    public String toString() {
+        return "LocalDtoRequest{" +
+                "nome='" + nome + '\'' +
+                ", endereco=" + endereco +
+                ", coordenadas=" + coordenadas +
+                ", idTags=" + idTags +
+                ", tags=" + tags +
+                ", visitacao=" + visitacao +
+                ", imagemUrl='" + imagemUrl + '\'' +
+                '}';
+    }
 }

@@ -90,7 +90,7 @@ public class LocalController {
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @PathVariable String id,
             @Valid @RequestBody LocalDtoRequest localDtoRequest) {
-        log.info("Iniciando atualizacao de local. userId={} id={} nome={}", principal.getUserId(), id, localDtoRequest.toString());
+        log.info("Iniciando atualizacao de local. userId={} id={} request={}", principal.getUserId(), id, localDtoRequest.toString());
         atualizarLocalUsecase.execute(mapper.toDomain(localDtoRequest), id, principal.getUserId());
         return ResponseEntity.status(HttpStatus.OK).build();
     }

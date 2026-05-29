@@ -37,8 +37,6 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
 
         MDC.put("operation", "atualizarLocal");
         try {
-            log.info("Iniciando atualizacao de local. id={}", id);
-
             Local existente = localRepositoryPort.buscarPorIdLocal(id);
 
             if (isNull(existente) || existente.getOwnerUserId() == null || !existente.getOwnerUserId().equals(ownerUserId)) {
