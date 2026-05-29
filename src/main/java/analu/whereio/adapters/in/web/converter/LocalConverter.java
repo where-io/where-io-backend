@@ -1,6 +1,7 @@
 package analu.whereio.adapters.in.web.converter;
 
-import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalUpdateDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.PlaceDetailsDtoResponse;
@@ -25,6 +26,8 @@ public abstract class LocalConverter {
     protected FileStoragePort fileStoragePort;
 
     public abstract Local toDomain(LocalDtoRequest localDtoRequest);
+
+    public abstract Local toDomain(LocalUpdateDtoRequest localUpdateDtoRequest);
 
     @Mapping(target = "fotoUrls", source = "fotos", qualifiedByName = "localFotosToUrls")
     public abstract LocalDtoResponse toResponse(Local local);

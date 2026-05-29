@@ -1,12 +1,10 @@
 package analu.whereio.adapters.in.web;
 
 import analu.whereio.adapters.in.web.converter.LocalConverter;
-import analu.whereio.adapters.in.web.dto.request.LocalBuscarDtoRequest;
-import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalBuscarDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
-import analu.whereio.adapters.in.web.dto.response.PlaceDetailsDtoResponse;
-import analu.whereio.adapters.out.external.geocoding.record.PlaceDetailsRecord;
 import analu.whereio.adapters.out.external.geocoding.record.AutoCompleteResponse;
 import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Endereco;

@@ -21,9 +21,11 @@ public class CadastrarTagUsecaseImpl implements CadastrarTagUsecase {
         if (tag.getUserId() == null || tag.getUserId().isBlank()) {
             throw new BusinessException("Usuário da tag é obrigatório", HttpStatus.BAD_REQUEST);
         }
+
         if (!isNull(tagRepositoryPort.buscarPorNomeTag(tag.getNome(), tag.getUserId()))) {
             throw new BusinessException("Tag já foi cadastrada", HttpStatus.UNPROCESSABLE_ENTITY);
         }
+
         try {
             return tagRepositoryPort.cadastrarTag(tag);
         } catch (BusinessException e) {

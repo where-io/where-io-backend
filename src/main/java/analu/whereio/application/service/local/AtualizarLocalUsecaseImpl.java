@@ -1,6 +1,5 @@
 package analu.whereio.application.service.local;
 
-import analu.whereio.adapters.out.external.geocoding.record.LatitudeLongitudeRecord;
 import analu.whereio.application.model.Coordenadas;
 import analu.whereio.application.model.Endereco;
 import analu.whereio.application.model.Local;
@@ -16,7 +15,6 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import static java.util.Objects.isNull;
@@ -67,6 +65,14 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
                 local.setImagemUrl(null);
             }
 
+            if (local.getEndereco() == null) {
+                local.setEndereco(existente.getEndereco());
+            }
+
+            if (local.getCoordenadas() == null) {
+                local.setCoordenadas(existente.getCoordenadas());
+            }
+
             /*
              * PUT não envia {@code fotos}; MapStruct/Jackson deixa lista vazia, não null.
              * Preservar galeria já persistida (upload/remove de foto usa {@code atualizarLocal} direto no repositório).
@@ -78,40 +84,54 @@ public class AtualizarLocalUsecaseImpl implements AtualizarLocalUsecase {
                                 : new ArrayList<>(existente.getFotos()));
             }
 
-            sincronizarTagsDoLocalService.aplicar(local);
-
-            if (coordenadasValidas(local.getCoordenadas())) {
-                log.debug("Atualizacao de local usando coordenadas enviadas na requisicao. id={}", id);
-            } else if (coordenadasValidas(existente.getCoordenadas()) && !enderecoAlterado(local.getEndereco(), existente.getEndereco())) {
-                local.setCoordenadas(existente.getCoordenadas());
-                log.debug("Endereco sem alteracao; coordenadas existentes preservadas. id={}", id);
+            /*
+             * Update DTO não envia tags; preservar associações já existentes.
+             * Sincronização só ocorre se o request enviou tags explicitamente.
+             */
+            if ((local.getIdTags() == null || local.getIdTags().isEmpty()) &&
+                (local.getTags() == null || local.getTags().isEmpty())) {
+                local.setIdTags(existente.getIdTags() == null
+                        ? new ArrayList<>()
+                        : new ArrayList<>(existente.getIdTags()));
             } else {
-                try {
-                    LatitudeLongitudeRecord record =
-                            latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
-
-                    Coordenadas coordenadas = Coordenadas.builder().build();
-                    coordenadas.setLatitude(record.latitude());
-                    coordenadas.setLongitude(record.longitude());
-                    local.setCoordenadas(coordenadas);
-
-                } catch (RuntimeException | IOException | InterruptedException e) {
-                    if (coordenadasValidas(existente.getCoordenadas())) {
-                        local.setCoordenadas(existente.getCoordenadas());
-                        log.warn(
-                                "Geocoding falhou na atualizacao; mantendo coordenadas ja persistidas. id={}",
-                                id,
-                                e);
-                    } else {
-                        log.warn("Falha ao obter coordenadas na atualizacao do local. id={}", id, e);
-                        throw new BusinessException(
-                                "Não foi possível obter coordenadas para o endereço informado",
-                                HttpStatus.UNPROCESSABLE_ENTITY);
-                    }
-                }
+                sincronizarTagsDoLocalService.aplicar(local);
             }
 
+//            if (coordenadasValidas(local.getCoordenadas())) {
+//                log.debug("Atualizacao de local usando coordenadas enviadas na requisicao. id={}", id);
+//            } else if (coordenadasValidas(existente.getCoordenadas()) && !enderecoAlterado(local.getEndereco(), existente.getEndereco())) {
+//                local.setCoordenadas(existente.getCoordenadas());
+//                log.debug("Endereco sem alteracao; coordenadas existentes preservadas. id={}", id);
+//            } else {
+//                try {
+//                    LatitudeLongitudeRecord record =
+//                            latitudeLongitudePort.ConverterEnderecoParaCoordenadas(local.getEndereco().toString());
+//
+//                    Coordenadas coordenadas = Coordenadas.builder().build();
+//                    coordenadas.setLatitude(record.latitude());
+//                    coordenadas.setLongitude(record.longitude());
+//                    local.setCoordenadas(coordenadas);
+//
+//                } catch (RuntimeException | IOException | InterruptedException e) {
+//                    if (coordenadasValidas(existente.getCoordenadas())) {
+//                        local.setCoordenadas(existente.getCoordenadas());
+//                        log.warn(
+//                                "Geocoding falhou na atualizacao; mantendo coordenadas ja persistidas. id={}",
+//                                id,
+//                                e);
+//                    } else {
+//                        log.warn("Falha ao obter coordenadas na atualizacao do local. id={}", id, e);
+//                        throw new BusinessException(
+//                                "Não foi possível obter coordenadas para o endereço informado",
+//                                HttpStatus.UNPROCESSABLE_ENTITY);
+//                    }
+//                }
+//            }
+
             try{
+
+                existente.setNome(local.getNome());
+                existente.setImagemUrl(local.getImagemUrl());
                 localRepositoryPort.atualizarLocal(local);
 
             }catch (Exception e){

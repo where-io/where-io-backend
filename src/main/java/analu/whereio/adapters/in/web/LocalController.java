@@ -1,8 +1,9 @@
 package analu.whereio.adapters.in.web;
 
 import analu.whereio.adapters.in.web.converter.LocalConverter;
-import analu.whereio.adapters.in.web.dto.request.LocalBuscarDtoRequest;
-import analu.whereio.adapters.in.web.dto.request.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalBuscarDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalDtoRequest;
+import analu.whereio.adapters.in.web.dto.request.local.LocalUpdateDtoRequest;
 import analu.whereio.adapters.in.web.dto.response.LocalBuscarDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.PlaceDetailsDtoResponse;
@@ -86,12 +87,12 @@ public class LocalController {
     }
 
     @PutMapping("/{id}")
-    ResponseEntity<LocalDtoResponse> atualizarLocal(
+    ResponseEntity<Void> atualizarLocal(
             @AuthenticationPrincipal JwtUserPrincipal principal,
             @PathVariable String id,
-            @Valid @RequestBody LocalDtoRequest localDtoRequest) {
-        log.info("Iniciando atualizacao de local. userId={} id={} request={}", principal.getUserId(), id, localDtoRequest.toString());
-        atualizarLocalUsecase.execute(mapper.toDomain(localDtoRequest), id, principal.getUserId());
+            @Valid @RequestBody LocalUpdateDtoRequest localUpdateDtoRequest) {
+        log.info("Iniciando atualizacao de local. userId={} id={} request={}", principal.getUserId(), id, localUpdateDtoRequest.toString());
+        atualizarLocalUsecase.execute(mapper.toDomain(localUpdateDtoRequest), id, principal.getUserId());
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 }
