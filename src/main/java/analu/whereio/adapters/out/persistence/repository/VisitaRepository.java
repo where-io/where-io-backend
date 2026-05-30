@@ -10,4 +10,6 @@ import java.util.List;
 public interface VisitaRepository extends MongoRepository<VisitaEntity, String> {
 
     List<VisitaEntity> findByIdLocalAndUserId(String idLocal, String userId);
+
+    List<VisitaEntity> findByUserId(String userId);
 }

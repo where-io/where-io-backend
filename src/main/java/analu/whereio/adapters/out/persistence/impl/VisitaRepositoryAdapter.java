@@ -46,6 +46,12 @@ public class VisitaRepositoryAdapter implements VisitaRepositoryPort {
     }
 
     @Override
+    public List<Visita> buscarTodasVisitasPorUsuario(String userId) {
+        log.debug("Buscando todas as visitas do usuário no MongoDB. userId={}", userId);
+        return repository.findByUserId(userId).stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     public Visita buscarPorId(String id) {
         log.debug("Buscando visita por id no MongoDB. id={}", id);
         return repository.findById(id).map(mapper::toDomain).orElse(null);

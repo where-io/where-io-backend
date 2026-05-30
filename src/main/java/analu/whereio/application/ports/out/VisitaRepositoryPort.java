@@ -14,5 +14,7 @@ public interface VisitaRepositoryPort {
 
     List<Visita> buscarVisitasPorIdLocal(String idLocal, String userId);
 
+    List<Visita> buscarTodasVisitasPorUsuario(String userId);
+
     Visita buscarPorId(String id);
 }

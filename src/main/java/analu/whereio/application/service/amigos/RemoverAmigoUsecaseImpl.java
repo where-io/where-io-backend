@@ -4,6 +4,7 @@ import analu.whereio.application.model.Friendship;
 import analu.whereio.application.model.FriendshipStatus;
 import analu.whereio.application.ports.in.amigos.RemoverAmigoUsecase;
 import analu.whereio.application.ports.out.FriendshipRepositoryPort;
+import analu.whereio.application.ports.out.SharingSettingsRepositoryPort;
 import analu.whereio.exceptions.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 public class RemoverAmigoUsecaseImpl implements RemoverAmigoUsecase {
 
     private final FriendshipRepositoryPort friendshipRepositoryPort;
+    private final SharingSettingsRepositoryPort sharingSettingsRepositoryPort;
 
     @Override
     public void execute(String amigoUserId, String currentUserId) {
@@ -27,6 +29,7 @@ public class RemoverAmigoUsecaseImpl implements RemoverAmigoUsecase {
                     .orElseThrow(() -> new BusinessException("Amizade não encontrada", HttpStatus.NOT_FOUND));
 
             friendshipRepositoryPort.deleteById(friendship.getId());
+            sharingSettingsRepositoryPort.deleteAllBetweenUsers(currentUserId, amigoUserId);
         } finally {
             MDC.remove("operation");
         }
