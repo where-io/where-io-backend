@@ -44,7 +44,7 @@ public class JwtAuthenticationAdapter implements JwtAuthenticationPort {
                 .claim("roles", roles)
                 .issuedAt(now)
                 .expiration(exp)
-                .signWith(key)
+                .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
 
