@@ -13,5 +13,7 @@ public interface SharingSettingsRepositoryPort {
 
     List<SharingSettings> findByFromUserIdAndShareLocationTrue(String fromUserId);
 
+    List<SharingSettings> findByFromUserId(String fromUserId);
+
     void deleteAllBetweenUsers(String userA, String userB);
 }

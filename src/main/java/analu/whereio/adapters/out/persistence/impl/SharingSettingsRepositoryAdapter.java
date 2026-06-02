@@ -35,6 +35,13 @@ public class SharingSettingsRepositoryAdapter implements SharingSettingsReposito
     }
 
     @Override
+    public List<SharingSettings> findByFromUserId(String fromUserId) {
+        return repository.findByFromUserId(fromUserId).stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void deleteAllBetweenUsers(String userA, String userB) {
         repository.deleteAllBetweenUsers(userA, userB);
     }

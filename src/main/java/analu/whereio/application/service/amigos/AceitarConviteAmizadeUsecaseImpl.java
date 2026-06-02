@@ -53,6 +53,12 @@ public class AceitarConviteAmizadeUsecaseImpl implements AceitarConviteAmizadeUs
     }
 
     private void criarSharingSettingsDefault(String fromUserId, String toUserId) {
+        // Idempotent: only create if no document exists yet
+        boolean exists = sharingSettingsRepositoryPort
+                .findByFromUserIdAndToUserId(fromUserId, toUserId)
+                .isPresent();
+        if (exists) return;
+
         SharingSettings settings = new SharingSettings();
         settings.setFromUserId(fromUserId);
         settings.setToUserId(toUserId);

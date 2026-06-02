@@ -15,6 +15,8 @@ public interface SharingSettingsMongoRepository extends MongoRepository<SharingS
 
     List<SharingSettingsEntity> findByFromUserIdAndShareLocationTrue(String fromUserId);
 
+    List<SharingSettingsEntity> findByFromUserId(String fromUserId);
+
     void deleteByFromUserIdAndToUserId(String fromUserId, String toUserId);
 
     @Query(value = "{ $or: [ { fromUserId: ?0, toUserId: ?1 }, { fromUserId: ?1, toUserId: ?0 } ] }", delete = true)
