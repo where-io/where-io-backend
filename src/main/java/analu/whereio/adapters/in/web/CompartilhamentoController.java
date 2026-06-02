@@ -5,11 +5,13 @@ import analu.whereio.adapters.in.web.converter.LocalConverter;
 import analu.whereio.adapters.in.web.converter.VisitaConverter;
 import analu.whereio.adapters.in.web.dto.request.AtualizarCompartilhamentoRequest;
 import analu.whereio.adapters.in.web.dto.response.CompartilhamentoResponse;
+import analu.whereio.adapters.in.web.dto.response.FriendSharedLocalResponse;
 import analu.whereio.adapters.in.web.dto.response.LocalDtoResponse;
 import analu.whereio.adapters.in.web.dto.response.VisitaDtoResponse;
 import analu.whereio.application.model.SharingSettings;
 import analu.whereio.application.ports.in.compartilhamento.AtualizarCompartilhamentoUsecase;
 import analu.whereio.application.ports.in.compartilhamento.ObterCompartilhamentoUsecase;
+import analu.whereio.application.ports.in.compartilhamento.ObterLocaisCompartilhadosUsecase;
 import analu.whereio.application.ports.in.compartilhamento.ObterLocaisAmigoUsecase;
 import analu.whereio.application.ports.in.compartilhamento.ObterVisitasAmigoUsecase;
 import analu.whereio.config.security.JwtUserPrincipal;
@@ -27,6 +29,7 @@ public class CompartilhamentoController {
 
     private final ObterCompartilhamentoUsecase obterCompartilhamentoUsecase;
     private final AtualizarCompartilhamentoUsecase atualizarCompartilhamentoUsecase;
+    private final ObterLocaisCompartilhadosUsecase obterLocaisCompartilhadosUsecase;
     private final ObterLocaisAmigoUsecase obterLocaisAmigoUsecase;
     private final ObterVisitasAmigoUsecase obterVisitasAmigoUsecase;
     private final CompartilhamentoConverter compartilhamentoConverter;
@@ -61,6 +64,22 @@ public class CompartilhamentoController {
                 .map(localConverter::toResponse)
                 .toList();
         return ResponseEntity.ok(locais);
+    }
+
+    @GetMapping("/locais-compartilhados")
+    ResponseEntity<List<FriendSharedLocalResponse>> obterLocaisCompartilhados(
+            @AuthenticationPrincipal JwtUserPrincipal principal) {
+        List<FriendSharedLocalResponse> response = obterLocaisCompartilhadosUsecase.execute(principal.getUserId())
+                .stream()
+                .map(item -> {
+                    FriendSharedLocalResponse shared = new FriendSharedLocalResponse();
+                    shared.setLocal(localConverter.toResponse(item.getLocal()));
+                    shared.setOwnerFriendId(item.getOwnerFriendId());
+                    shared.setOwnerFriendName(item.getOwnerFriendName());
+                    return shared;
+                })
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{friendId}/visitas")
